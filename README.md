@@ -10,6 +10,8 @@ Come hang out with us on freenode in #kraken-dashboard
 
 ### Prerequisites:
 
+Python 2.7
+
 The ceph-rest-api must be run on either a member of your Ceph cluster, or on a installed client node that has admin access to the cluster.
 
 
