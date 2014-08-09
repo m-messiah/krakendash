@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-screen -S django sudo python krakendash/manage.py runserver 0.0.0.0:8000
+screen -dmS django python krakendash/manage.py runserver 0.0.0.0:8000
