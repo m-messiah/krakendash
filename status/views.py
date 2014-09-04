@@ -33,6 +33,7 @@ from django.conf import settings
 from django.core.files.temp import NamedTemporaryFile
 from cephclient import wrapper
 from collections import defaultdict
+from os import popen
 
 import requests
 import re
@@ -63,7 +64,7 @@ def home(request):
 
     # Monitors
     all_mons = cluster_status['output']['monmap']['mons']
-    up_mons = cluster_status['output']['health']['timechecks']['mons']
+    up_mons = cluster_status['output']['health']['health']['health_services'][0]['mons']
     total_mon_count = len(all_mons)
     mons_ok = 0
     mons_warn = 0
@@ -98,9 +99,10 @@ def home(request):
     bytes_total = cluster_status['output']['pgmap']['bytes_total']
     bytes_used = cluster_status['output']['pgmap']['bytes_used']
 
-    data_avail, data_scale = filesize.naturalsize(bytes_total).split()
-    scale = filesize.suffixes['decimal'].index(data_scale)+1
-    data_used = round(float(bytes_used)/pow(1024, scale), 1)
+    data_avail = str(float(filesize.naturalsize(bytes_total).split()[0]) * 1024)
+    data_scale = filesize.naturalsize(bytes_total / 1024).split()[1]
+    scale = filesize.suffixes['decimal'].index(data_scale) + 1
+    data_used = round(float(bytes_used)/pow(1024.0, scale), 1)
 
     # pgs
     pg_statuses = cluster_status['output']['pgmap']
@@ -148,6 +150,23 @@ def home(request):
             osds_warn += 1
         else:
             osds_crit += 1
+
+    try:
+        # Users and stats
+        # TODO Add possibility of using on not radosgw host.(s3api through web)
+        buckets_list = json.loads(popen("radosgw-admin buckets list").read())
+        users_stat = {}
+        for bucket in buckets_list:
+            bucket_stat = json.loads(
+                popen(
+                    "radosgw-admin bucket stats --bucket='{0}'".format(bucket)
+                ).read())
+            if bucket_stat["owner"] in users_stat:
+                users_stat[bucket_stat["owner"]][bucket] = bucket_stat["usage"]["rgw.main"]
+            else:
+                users_stat[bucket_stat["owner"]] = {bucket: bucket_stat["usage"]["rgw.main"]}
+    except:
+        pass
 
     return render_to_response('dashboard.html', locals())
 
