@@ -1,5 +1,15 @@
 {% extends "layout.html" %}
 {% load mathfilters %}
+{% block title %}
+Ceph
+{% if cluster_health.output.overall_status == "HEALTH_OK" %}
+OK
+{% elif cluster_health.output.overall_status == "HEALTH_WARN" %}
+WARN
+{% else %}
+CRIT
+{% endif %}/Used: {{ data_used }}{{ data_scale }}
+{% endblock %}
 {% block content %}
 <div class="container">
     <div class="starter-template">
@@ -128,9 +138,9 @@
                     <p class="osd_button">
                         {% for osd in osd_state %}
                             {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
-                                <button type="button" class="btn btn-xs btn-success" role="button" send_url="/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                <button type="button" class="btn btn-xs btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
                             {% else %}
-                                <button type="button" class="btn btn-xs btn-danger" role="button" send_url="/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                <button type="button" class="btn btn-xs btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
                             {% endif %}
                         {% endfor %}
                     </p>
@@ -153,51 +163,53 @@
             </div>
         </div>
     </div>
-    {% if users %}
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 class="panel-title">S3 users</h3>
-        </div>
-        <div class="panel-body">
-            <div class="row">
-                {% for user, data in users_stat.items %}
-                 <div class="col-sm-3" style="height:{{data|length|sub:1|mul:70|add:170}}px;">
-                    {% for bucket, stat in data.items reversed %}
-                    <div id="gauge-{{ user }}-{{ bucket }}" style="width:220px; height:140px; display: inline-block; position: absolute; left:0;"></div>
-                    <script>
-                        var g = new JustGage({
-                        id: "gauge-{{ user }}-{{ bucket }}",
-                        value: +({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)).toFixed(3),
-                        gaugeWidthScale: {{ data|length|add:1|sub:forloop.counter}} / {{ data | length }},
-                        title: "{{ user }}",
-                        {% ifnotequal forloop.counter 1 %}
-                        showMinMax:false,
-                        {% endifnotequal %}
-                        {% ifnotequal data|length 1 %}
-                        valueFontColor: "#fff",
-                        {% endifnotequal %}
-                        min: 0,
-                        max: {{ data_avail }},
-                        label: "{{ data_scale }}"
-                        });
-                    </script>
-                    {% endfor %}
-                    <div style="position:absolute;bottom:0;height:{{data|length|sub:1|mul:70}}px;width:70%;text-align:left;">
-                        <ul class="list-unstyled">
-                        {% for bucket, stat in data.items %}
-                            <li>
-                                <span class="badge pull-right">{{stat.size_kb|mul:1024|filesizeformat}}</span>
-                                {{ bucket }}
-                            </li>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">S3 users</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    {% for user, data in users_stat.items %}
+                     <div class="col-sm-3" style="height:{{data|length|sub:1|mul:70|add:170}}px;">
+                        {% for bucket, stat in data.items reversed %}
+                        <div id="gauge-{{ user }}-{{ bucket }}" style="width:220px; height:140px; display: inline-block; position: absolute; left:0;"></div>
+                        <script>
+                                        var g = new JustGage({
+                                        id: "gauge-{{ user }}-{{ bucket }}",
+                                        value: +({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)).toFixed(3),
+                                        min: 0,
+                                        gaugeWidthScale: {{ data|length|add:1|sub:forloop.counter}} / {{ data | length }},
+                                        title: "{{ user }}",
+                                        {% ifnotequal forloop.counter 1 %}
+                                        showMinMax:false,
+                                        {% endifnotequal %}
+                                        {% ifnotequal data|length 1 %}
+                                        valueFontColor: "#fff",
+                                        {% endifnotequal %}
+                                        max: {{ data_avail }},
+                                        label: "{{ data_scale }}"
+                                        });
+                        </script>
                         {% endfor %}
-                        </ul>
+                        <div style="position:absolute;bottom:0;height:{{data|length|sub:1|mul:70}}px;width:70%;text-align:left;">
+                            <ul class="list-unstyled">
+                            {% for bucket, stat in data.items %}
+                                <li>
+                                    <span class="badge pull-right">{{stat.size_kb|mul:1024|filesizeformat}} </span>
+                                    {% if stat.size_kb|div:1048576 > data_avail|div:4 %}
+                                    <p class="text-danger">{{ bucket }}</p>
+                                    {% else %}
+                                    {{ bucket }}
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </div>
                     </div>
+                   {% endfor %}
                 </div>
-               {% endfor %}
             </div>
         </div>
-    </div>
-    {% endif %}
     <!--div class="alert alert-success alert-dismissable">
         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
         <strong>Help Tip: </strong>Click on an OSD to get its details.

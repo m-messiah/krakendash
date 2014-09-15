@@ -1,98 +1,202 @@
-{% comment %}
+{% extends "layout.html" %}
+{% load mathfilters %}
+{% block title %}
+Service zone
+{% endblock %}
+{% block content %}
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% else %}
+<div class="container">
+    <div class="starter-template">
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <a class="text-muted"><i class="glyphicon glyphicon-plus pull-right" data-toggle="modal" data-target="#adduser"></i></a>
+                    <div class="modal fade" id="adduser" tabindex="-1" role="dialog" aria-labelledby="label-adduser" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                    <h4 class="modal-title" id="label-adduser">Create new user</h4>
+                                </div>
+                                <form class="form-horizontal" role="form" method="get" action="/krakendash/user/0/adduser/">{% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="newEmail" class="col-sm-2 control-label">Email</label>
+                                        <div class="col-sm-10">
+                                            <input type="email" class="form-control" id="newEmail" name="newEmail" placeholder="Email">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newUid" class="col-sm-2 control-label">UID</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" id="newUid" name="newUid" placeholder="UID">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newName" class="col-sm-2 control-label">Name</label>
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" id="newName" name="newName" placeholder="Name">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="submit" id="createuser" class="btn btn-primary">Create</button>
+                                </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="panel-title">Users list</h3>
+                </div>
+                <div class="panel-body">
+                    {% for username, stats in users.items %}
+                    <div class="col-sm-6">
+                    <div class="panel panel-default {% if stats.suspended > 0 %}text-muted{% endif %}">
+                        <div class="panel-heading">
+                            <a class="text-muted pull-right"><i class="glyphicon glyphicon-cog" data-toggle="modal" data-target="#customize-{{ username }}"></i></a>
+                            <h3 class="panel-title {% if stats.suspended > 0 %}text-muted{% endif %}">{{ username }}</h3>
+                            <div class="modal fade" id="customize-{{ username }}" tabindex="-1" role="dialog" aria-labelledby="label-customize-{{ username }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                            <h4 class="modal-title" id="label-adduser">Customize {{ username }}</h4>
+                                        </div>
+                                        <form class="form-horizontal" role="form" method="get" action="/krakendash/user/{{ username }}/customize/">{% csrf_token %}
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label for="{{username}}-email" class="col-sm-2 control-label">Email</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="email" class="form-control" id="{{username}}-email" name="email" placeholder="Email" value="{{ stats.email }}">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="{{username}}-name" class="col-sm-2 control-label">Name</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="text" class="form-control" id="{{username}}-name" name="name" placeholder="Name" value="{{ stats.display_name }}">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="{{username}}-maxbuckets" class="col-sm-2 control-label">Max buckets</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="number" class="form-control" id="{{username}}-maxbuckets" name="maxbuckets" placeholder="Max buckets" value="{{ stats.max_buckets }}">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="{{username}}-maxobjects" class="col-sm-2 control-label">Max objects</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="number" class="form-control" id="{{username}}-maxobjects" name="maxobjects" placeholder="Max objects" value="{{ stats.user_quota.max_objects }}">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="{{username}}-maxsizekb" class="col-sm-2 control-label">Max size</label>
+                                                    <div class="col-sm-10 input-group">
+                                                        <input type="number" class="form-control" id="{{username}}-maxsizekb" name="maxsizekb" placeholder="Max size" value="{{ stats.user_quota.max_size_kb }}">
+                                                        <span class="input-group-addon">Kb</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="{{username}}-maxbuckobjects" class="col-sm-2 control-label">Max objects in bucket</label>
+                                                    <div class="col-sm-10">
+                                                        <input type="number" class="form-control" id="{{username}}-maxbuckobjects" name="maxbuckobjects" placeholder="Max objects" value="{{ stats.bucket_quota.max_objects }}">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="{{username}}-maxbucksizekb" class="col-sm-2 control-label">Max size in bucket</label>
+                                                    <div class="col-sm-10 input-group">
+                                                        <input type="number" class="form-control" id="{{username}}-maxbucksizekb" name="maxbucksizekb" placeholder="Max size" value="{{ stats.bucket_quota.max_size_kb }}">
+                                                        <span class="input-group-addon">Kb</span>
+                                                    </div>
+                                                </div>
+                                                <span class="help-block">To disable any quota write "-1" into the appropriate field</span>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-success" id="newkey" send_url="/krakendash/user/{{username}}/newkey/">Add key</button>
+                                                <div class="btn-group btn-toggle pull-left">
+                                                    <button type="button" class="btn btn-xs {% if stats.suspended > 0 %}btn-warning active{%else%}btn-default{%endif%}" send_url="/krakendash/user/{{username}}/suspend/0/">Suspend</button>
+                                                    <button type="button" class="btn btn-xs {% if stats.suspended > 0 %}btn-default{%else%}btn-warning active{%endif%}" send_url="/krakendash/user/{{username}}/suspend/1/">Enable</button>
+                                                </div>
 
-Copyright (c) 2013,2014 Donald Talton
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
-
-Redistributions in binary form must reproduce the above copyright notice, this
-list of conditions and the following disclaimer in the documentation and/or
-other materials provided with the distribution.
-
-Neither the name of Donald Talton nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-{% endcomment %}
-
-
-{% load staticfiles %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <!-- <link rel="shortcut icon" href="../../docs-assets/ico/favicon.png"> -->
-
-    <title>Kraken</title>
-
-    <!-- Bootstrap core CSS -->
-    <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="{% static "bootstrap/css/starter-template.css" %}" rel="stylesheet">
-    <link href="{% static "css/kraken.css" %}" rel="stylesheet">
-
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
-    <script class="include" type="text/javascript" src="{% static "jqplot/jquery.jqplot.min.js" %}"></script>
-    <script src="{% static "jqplot/plugins/jqplot.pieRenderer.min.js" %}"></script>
-    <script src="{% static "jqplot/plugins/jqplot.donutRenderer.min.js" %}"></script>
-
-    <script src="{% static "justgage/resources/js/justgage.1.0.1.min.js" %}"></script>
-    <script src="{% static "justgage/resources/js/raphael.2.1.0.min.js" %}"></script>
-
-
-  </head>
-
-  <body>
-
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="/">Kraken</a>
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                <button type="submit" id="customize-user" class="btn btn-primary">Save</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-body text-left">
+                            <dl class="dl-horizontal">
+                                <dt>Name</dt><dd>{{ stats.display_name }}</dd>
+                                <dt>Email</dt><dd>{{ stats.email }}</dd>
+                                <dt>Keys</dt><dd>
+                                    {% for key in stats.keys %}
+                                    <!-- Button trigger modal -->
+                                    <span data-toggle="modal" data-target="#secretkeyModal{{key.access_key}}">
+                                    {{ key.access_key}}</span>
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="secretkeyModal{{key.access_key}}" tabindex="-1" role="dialog" aria-labelledby="label-{{key.access_ley}}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                                    <h4 class="modal-title" id="label-{{ key.access_key }}">{{ key.access_key }}</h4>
+                                                </div>
+                                            <div class="modal-body">
+                                                <dl class="dl-horizontal"><dt>{{ key.user }}<dt>
+                                                <dd>{{ key.secret_key }}</dd></dl>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-danger pull-left" id="deletekey" send_url="/krakendash/user/{{username}}/deletekey/{{ key.access_key }}">Delete key</button>
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    {% endfor %}
+                                </dd>
+                                {% if stats.user_quota.enabled %}
+                                <dt>User quota</dt>
+                                <dd>
+                                    Max objects: {{ stats.user_quota.max_objects }}<br>
+                                    Max size: {{ stats.user_quota.max_size_kb|mul:1024|filesizeformat }}
+                                </dd>
+                                {% endif %}
+                                {% if stats.bucket_quota.enabled %}
+                                <dt>Bucket quota</dt>
+                                <dd>
+                                    Max objects: {{ stats.bucket_quota.max_objects }}<br>
+                                    Max size: {{ stats.bucket_quota.max_size_kb|mul:1024|filesizeformat }}
+                                </dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-        <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li><a href="/">dash</a></li>
-            <li><a href="/ops">ops</a></li>
-          </ul>
-        </div>
-      </div>
     </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var click_url = function () {
+            var el = $(this);
+            var _data = el.attr('alt');
+            var send_url = el.attr('send_url');
+            $.ajax({
+                type: 'GET',
+                url: send_url,
+                data: _data,
+                dataType: 'html',
+                success: function () {document.location.reload(true);}
+            });
+        };
 
-    <div class="container">
-
-      <div class="starter-template">
-
-
-	coming soon
-
-
-      </div><!-- end starter template -->
-
-    </div><!-- /.container -->
-
-
-  </body>
-</html>
-
-
+        $('button[send_url]').mousedown(click_url);
+    });
+</script>
+{% endif %}
+{% endblock %}

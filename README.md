@@ -75,3 +75,8 @@ If you are not running Kraken on a Ceph node, edit krakendash/kraken/settings.py
 - [] Collectd integration
 - [] Graphite integration
 - [] Multi-cluster support
+
+### Milestone S3 One
+- [x] S3 users stats
+- [x] S3 users administration
+- [] S3 users customize and quotes
