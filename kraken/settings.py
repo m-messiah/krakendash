@@ -69,7 +69,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -90,6 +90,7 @@ STATICFILES_DIRS = (
 # Template dir
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'status/templates'),
+    os.path.join(BASE_DIR, 'ops/templates'),
 )
 
 #Configuration for django-rest-framework
@@ -97,7 +98,7 @@ REST_FRAMEWORK = {
     # Use hyperlinked styles by default.
     # Only used if the `serializer_class` attribute is not set on a view.
     'DEFAULT_MODEL_SERIALIZER_CLASS':
-        'rest_framework.serializers.HyperlinkedModelSerializer',
+    'rest_framework.serializers.HyperlinkedModelSerializer',
 
 }
 
@@ -106,4 +107,4 @@ CEPH_BASE_URL = 'http://127.0.0.1:5000/api/v0.1/'
 
 #put any settings you need to override in local_settings.py, and it's gitignored
 if os.path.exists(os.path.join(BASE_DIR, 'kraken/local_settings.py')):
-	from kraken.local_settings import *  # flake8: noqa
+    from kraken.local_settings import *  # flake8: noqa

@@ -35,8 +35,6 @@ import re
 import json
 
 from django.shortcuts import render_to_response
-from django.shortcuts import render
-from django.shortcuts import redirect
 from django.conf import settings
 from cephclient import wrapper
 import requests
@@ -168,7 +166,7 @@ def home(request):
             bucket_stat = json.loads(
                 check_output(["radosgw-admin",
                               "bucket", "stats",
-                              "--bucket={0}".format(escape(bucket))]
+                              "--bucket={0}".format(bucket)]
                 ))
             if bucket_stat["owner"] in users_stat:
                 users_stat[
@@ -180,69 +178,6 @@ def home(request):
         except:
             pass
     return render_to_response('dashboard.html', locals())
-
-
-def param(request, key):
-    return key in request.GET
-
-
-def escape(s):
-    return s.replace("'", "'\\''").replace("#", "'\\#'").replace("&", "'\\&'")
-
-
-def ops(request):
-    users_list = json.loads(check_output(["radosgw-admin", "metadata",
-                                          "list", "user"]))
-    users = {}
-    for username in users_list:
-        users[username] = json.loads(
-            check_output(["radosgw-admin", "user", "info",
-                          "--uid={0}".format(username)]))
-    return render(request, 'ops.html', locals())
-
-
-def user_custom(request, user, func, argument):
-    if func:
-        func = func[1:]
-    else:
-        users = {user: json.loads(
-            check_output(["radosgw-admin", "user", "info",
-                          "--uid={0}".format(user)]))}
-        return render_to_response('ops.html', locals())
-
-    if argument:
-        argument = argument[1:]
-
-    if user == "0" and func == "adduser":
-        if (param(request, 'newUid') and
-                param(request, 'newName') and
-                param(request, 'newEmail')):
-            uid = request.GET['newUid']
-            name = request.GET['newName']
-            email = request.GET['newEmail']
-
-            res = check_output(["radosgw-admin", "user", "create",
-                                "--uid={0}".format(uid),
-                                "--display-name={0}".format(name),
-                                "--email={0}".format(email)])
-    elif func == "suspend":
-        if int(argument) > 0:
-            res = check_output(["radosgw-admin", "user", "enable",
-                                "--uid={0}".format(escape(user))])
-        else:
-            res = check_output(["radosgw-admin", "user", "suspend",
-                                "--uid={0}".format(escape(user))])
-    elif func == "newkey":
-        res = check_output(["radosgw-admin", "user", "modify",
-                            "--uid={0}".format(escape(user)),
-                            "--gen-access-key"])
-    elif func == "deletekey":
-        res = check_output(["radosgw-admin", "key", "rm",
-                            "--uid={0}".format(escape(user)),
-                            "--access-key={0}".format(escape(argument))])
-    elif func == "customize":
-        pass
-    return redirect("/krakendash/ops/")
 
 
 def osd_details(request, osd_num):
