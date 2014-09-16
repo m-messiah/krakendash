@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1612c31b-a6ed-4634-b833-6e95d6b64e34" name="Default" comment="">
-      <change type="MOVED" beforePath="$PROJECT_DIR$/status/templates/ops.html" afterPath="$PROJECT_DIR$/ops/templates/ops.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/krakendash.iml" afterPath="$PROJECT_DIR$/.idea/krakendash.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kraken/settings.py" afterPath="$PROJECT_DIR$/kraken/settings.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kraken/urls.py" afterPath="$PROJECT_DIR$/kraken/urls.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/status/views.py" afterPath="$PROJECT_DIR$/status/views.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ops/views.py" afterPath="$PROJECT_DIR$/ops/views.py" />
     </list>
     <ignored path="krakendash.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -128,8 +123,8 @@
       <file leaf-file-name="views.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ops/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.6794479" vertical-offset="0" max-vertical-offset="1590">
-              <caret line="73" column="45" selection-start-line="73" selection-start-column="45" selection-end-line="73" selection-end-column="45" />
+            <state vertical-scroll-proportion="-0.21317829" vertical-offset="570" max-vertical-offset="2730">
+              <caret line="27" column="2" selection-start-line="27" selection-start-column="2" selection-end-line="27" selection-end-column="2" />
               <folding>
                 <element signature="e#1529#1564#0" expanded="true" />
               </folding>
@@ -157,10 +152,10 @@
         <option value="$PROJECT_DIR$/status/templates/layout.html" />
         <option value="$PROJECT_DIR$/status/templates/dashboard.html" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/ops/views.py" />
         <option value="$PROJECT_DIR$/status/views.py" />
         <option value="$PROJECT_DIR$/kraken/urls.py" />
         <option value="$PROJECT_DIR$/kraken/settings.py" />
+        <option value="$PROJECT_DIR$/ops/views.py" />
       </list>
     </option>
   </component>
@@ -559,7 +554,7 @@
     <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32806325" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.20594059" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32970297" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -941,8 +936,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ops/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.6794479" vertical-offset="0" max-vertical-offset="1590">
-          <caret line="73" column="45" selection-start-line="73" selection-start-column="45" selection-end-line="73" selection-end-column="45" />
+        <state vertical-scroll-proportion="-0.21317829" vertical-offset="570" max-vertical-offset="2730">
+          <caret line="27" column="2" selection-start-line="27" selection-start-column="2" selection-end-line="27" selection-end-column="2" />
           <folding>
             <element signature="e#1529#1564#0" expanded="true" />
           </folding>

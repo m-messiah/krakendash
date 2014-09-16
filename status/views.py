@@ -8,9 +8,9 @@
 # Redistributions of source code must retain the above copyright notice, this
 #  list of conditions and the following disclaimer.
 
-# Redistributions in binary form must reproduce the above copyright notice, this
-#  list of conditions and the following disclaimer in the documentation and/or
-#  other materials provided with the distribution.
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
 
 # Neither the name of Donald Talton nor the names of its
 #  contributors may be used to endorse or promote products derived from
@@ -24,7 +24,8 @@
 # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
 # OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -166,8 +167,7 @@ def home(request):
             bucket_stat = json.loads(
                 check_output(["radosgw-admin",
                               "bucket", "stats",
-                              "--bucket={0}".format(bucket)]
-                ))
+                              "--bucket={0}".format(bucket)]))
             if bucket_stat["owner"] in users_stat:
                 users_stat[
                     bucket_stat["owner"]
@@ -190,7 +190,7 @@ def osd_details(request, osd_num):
     )[0]
 
     response, osd_perf = ceph.osd_perf(body='json')
-    osd_disk_perf = filter(lambda x: x['id']  ==
-            int(osd_num), osd_perf['output']['osd_perf_infos'])[0]
+    osd_disk_perf = filter(lambda x: x['id'] == int(osd_num),
+                           osd_perf['output']['osd_perf_infos'])[0]
 
     return render_to_response('osd_details.html', locals())

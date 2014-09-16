@@ -8,9 +8,9 @@
 # Redistributions of source code must retain the above copyright notice, this
 #  list of conditions and the following disclaimer.
 
-# Redistributions in binary form must reproduce the above copyright notice, this
-#  list of conditions and the following disclaimer in the documentation and/or
-#  other materials provided with the distribution.
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
 
 # Neither the name of Donald Talton nor the names of its
 #  contributors may be used to endorse or promote products derived from
@@ -24,7 +24,8 @@
 # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
 # OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -39,7 +40,9 @@ from django.shortcuts import redirect
 
 
 def param(request, key):
-    return key in request.GET
+    if key not in request.GET:
+        raise Exception(key + "not found in request")
+    return escape(request.GET[key])
 
 
 def escape(s):
@@ -65,22 +68,22 @@ def user_custom(request, user, func, argument):
             check_output(["radosgw-admin", "user", "info",
                           "--uid={0}".format(user)]))}
         return render_to_response('ops.html', locals())
-
     if argument:
         argument = argument[1:]
 
     if user == "0" and func == "adduser":
-        if (param(request, 'newUid') and
-                param(request, 'newName') and
-                param(request, 'newEmail')):
-            uid = request.GET['newUid']
-            name = request.GET['newName']
-            email = request.GET['newEmail']
-
+        try:
+            uid = param(request, 'newUid')
+            name = param(request, 'newName')
+            email = param(request, 'newEmail')
+        except Exception as e:
+            error = e
+        else:
             res = check_output(["radosgw-admin", "user", "create",
                                 "--uid={0}".format(uid),
                                 "--display-name={0}".format(name),
                                 "--email={0}".format(email)])
+
     elif func == "suspend":
         if int(argument) > 0:
             res = check_output(["radosgw-admin", "user", "enable",
@@ -88,14 +91,87 @@ def user_custom(request, user, func, argument):
         else:
             res = check_output(["radosgw-admin", "user", "suspend",
                                 "--uid={0}".format(escape(user))])
+
     elif func == "newkey":
         res = check_output(["radosgw-admin", "user", "modify",
                             "--uid={0}".format(escape(user)),
                             "--gen-access-key"])
+
     elif func == "deletekey":
         res = check_output(["radosgw-admin", "key", "rm",
                             "--uid={0}".format(escape(user)),
                             "--access-key={0}".format(escape(argument))])
+
     elif func == "customize":
-        pass
+        try:
+            user_info = json.loads(
+                check_output(["radosgw-admin", "user", "info",
+                              "--uid={0}".format(escape(user))]))
+            command = ["radosgw-admin", "user", "modify",
+                       "--uid={0}".format(escape(user))]
+
+            email = param(request, 'email')
+            name = param(request, 'name')
+            maxbuckets = param(request, 'maxbuckets')
+            maxobjects = param(request, 'maxobjects')
+            maxsizekb = int(param(request, 'maxsizekb'))
+            maxbuckobjects = param(request, 'maxbuckobjects')
+            maxbucksizekb = int(param(request, 'maxbucksizekb'))
+            if email != user_info["email"]:
+                command.append("--email={0}".format(email))
+            if name != user_info["display_name"]:
+                command.append("--display_name={0}".format(name))
+
+            if len(command) > 4:
+                res = check_output(command)
+
+            command = ["radosgw-admin", "quota", "set",
+                       "--uid={0}".format(escape(user)),
+                       "--quota-scope=user"]
+
+            if maxobjects != user_info["user_quota"]["max_objects"]:
+                command.append("--max-objects={0}".format(maxobjects))
+
+            if maxsizekb != int(user_info["user_quota"]["max_size_kb"]):
+                if maxsizekb > 0:
+                    maxsizekb *= 1024
+                command.append("--max-size={0}".format(maxsizekb))
+
+            if len(command) > 5:
+                res = check_output(command)
+                res = check_output(["radosgw-admin", "quota", "enable",
+                                    "--quota-scope=user",
+                                    "--uid={0}".format(escape(user))])
+            if (int(maxobjects) == maxsizekb) and maxsizekb < 0:
+                res = check_output(["radosgw-admin", "quota", "disable",
+                                    "--quota-scope=user",
+                                    "--uid={0}".format(escape(user))])
+
+            command = ["radosgw-admin", "quota", "set",
+                       "--uid={0}".format(escape(user)),
+                       "--quota-scope=bucket"]
+
+            if maxbuckobjects != user_info["bucket_quota"]["max_objects"]:
+                command.append("--max-objects={0}".format(maxbuckobjects))
+
+            if maxbucksizekb != int(user_info["bucket_quota"]["max_size_kb"]):
+                if maxbucksizekb > 0:
+                    maxbucksizekb *= 1024
+                command.append("--max-size={0}".format(maxbucksizekb))
+
+            if len(command) > 5:
+                res = check_output(command)
+                res = check_output(["radosgw-admin", "quota", "enable",
+                                    "--quota-scope=bucket",
+                                    "--uid={0}".format(escape(user))])
+
+            if (int(maxbuckobjects) == maxbucksizekb) and maxbucksizekb < 0:
+                res = check_output(["radosgw-admin", "quota", "disable",
+                                    "--quota-scope=bucket",
+                                    "--uid={0}".format(escape(user))])
+
+        except Exception as e:
+            error = e
+            return render(request, "ops.html", locals())
+
     return redirect("/krakendash/ops/")

@@ -79,4 +79,4 @@ If you are not running Kraken on a Ceph node, edit krakendash/kraken/settings.py
 ### Milestone S3 One
 - [x] S3 users stats
 - [x] S3 users administration
-- [] S3 users customize and quotes
+- [x] S3 users customize and quotes
