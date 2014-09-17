@@ -112,7 +112,7 @@ Service zone
                                                 <span class="help-block">To disable any quota write "-1" into the appropriate field</span>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-success" id="newkey" send_url="/krakendash/user/{{username}}/newkey/">Add key</button>
+                                                <button type="button" class="btn btn-success" id="addkey" username="{{username}}" data-toggle="popover" data-placement="top" data-trigger="focus">Add key</button>
                                                 <div class="btn-group btn-toggle pull-left">
                                                     <button type="button" class="btn btn-xs {% if stats.suspended > 0 %}btn-warning active{%else%}btn-default{%endif%}" send_url="/krakendash/user/{{username}}/suspend/0/">Suspend</button>
                                                     <button type="button" class="btn btn-xs {% if stats.suspended > 0 %}btn-default{%else%}btn-warning active{%endif%}" send_url="/krakendash/user/{{username}}/suspend/1/">Enable</button>
@@ -132,28 +132,7 @@ Service zone
                                 <dt>Email</dt><dd>{{ stats.email }}</dd>
                                 <dt>Keys</dt><dd>
                                     {% for key in stats.keys %}
-                                    <!-- Button trigger modal -->
-                                    <span data-toggle="modal" data-target="#secretkeyModal{{key.access_key}}">
-                                    {{ key.access_key}}</span>
-                                    <!-- Modal -->
-                                    <div class="modal fade" id="secretkeyModal{{key.access_key}}" tabindex="-1" role="dialog" aria-labelledby="label-{{key.access_ley}}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                                                    <h4 class="modal-title" id="label-{{ key.access_key }}">{{ key.access_key }}</h4>
-                                                </div>
-                                            <div class="modal-body">
-                                                <dl class="dl-horizontal"><dt>{{ key.user }}<dt>
-                                                <dd>{{ key.secret_key }}</dd></dl>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-danger pull-left" id="deletekey" send_url="/krakendash/user/{{username}}/deletekey/{{ key.access_key }}">Delete key</button>
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    </div>
+                                    <span>{{ key.access_key}}</span>
                                     {% endfor %}
                                 </dd>
                                 {% if stats.user_quota.enabled %}
@@ -191,11 +170,30 @@ Service zone
                 url: send_url,
                 data: _data,
                 dataType: 'html',
-                success: function () {document.location.reload(true);}
+                success: function () {
+                    document.location.reload(true);
+                },
+            });
+        };
+
+        var add_key = function () {
+            var el = $(this);
+            var send_url = "/krakendash/user/" + el.attr('username') + "/addkey/";
+            $.ajax({
+                type: 'GET',
+                url: send_url,
+                dataType: 'json',
+                success: function (data) {
+                    el.attr('data-title', data.access_key);
+                    el.attr('data-original-title', data.access_key);
+                    el.attr('data-content', data.secret_key);
+                    el.popover("show");
+                }
             });
         };
 
         $('button[send_url]').mousedown(click_url);
+        $('button[id=addkey]').focus(add_key);
     });
 </script>
 {% endif %}

@@ -33,6 +33,7 @@
 
 from subprocess import check_output
 import json
+from django.http import HttpResponse
 
 from django.shortcuts import render_to_response
 from django.shortcuts import render
@@ -92,10 +93,17 @@ def user_custom(request, user, func, argument):
             res = check_output(["radosgw-admin", "user", "suspend",
                                 "--uid={0}".format(escape(user))])
 
-    elif func == "newkey":
-        res = check_output(["radosgw-admin", "user", "modify",
-                            "--uid={0}".format(escape(user)),
-                            "--gen-access-key"])
+    elif func == "addkey":
+        old = json.loads(
+            check_output(["radosgw-admin", "user", "info",
+                          "--uid={0}".format(escape(user))]))["keys"]
+        res = json.loads(
+            check_output(["radosgw-admin", "user", "modify",
+                          "--uid={0}".format(escape(user)),
+                          "--gen-access-key"]))["keys"]
+        newkey = [item for item in res if item not in old][0]
+        return HttpResponse(json.dumps(newkey),
+                            content_type='application/json')
 
     elif func == "deletekey":
         res = check_output(["radosgw-admin", "key", "rm",
