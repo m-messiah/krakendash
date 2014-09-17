@@ -80,10 +80,13 @@ def user_custom(request, user, func, argument):
         except Exception as e:
             error = e
         else:
-            res = check_output(["radosgw-admin", "user", "create",
-                                "--uid={0}".format(uid),
-                                "--display-name={0}".format(name),
-                                "--email={0}".format(email)])
+            res = json.loads(
+                check_output(["radosgw-admin", "user", "create",
+                              "--uid={0}".format(uid),
+                              "--display-name={0}".format(name),
+                              "--email={0}".format(email)]))
+            return render(request, "user.html", {"username": uid,
+                                                 "stats": res})
 
     elif func == "suspend":
         if int(argument) > 0:

@@ -21,7 +21,7 @@ Service zone
                                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                                     <h4 class="modal-title" id="label-adduser">Create new user</h4>
                                 </div>
-                                <form class="form-horizontal" role="form" method="get" action="/krakendash/user/0/adduser/">{% csrf_token %}
+                                <form class="form-horizontal" role="form" id="createUser" method="GET" action="/krakendash/user/0/adduser/">{% csrf_token %}
                                 <div class="modal-body">
                                     <div class="form-group">
                                         <label for="newEmail" class="col-sm-2 control-label">Email</label>
@@ -44,7 +44,7 @@ Service zone
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                    <button type="submit" id="createuser" class="btn btn-primary">Create</button>
+                                    <button type="submit" class="btn btn-primary">Create</button>
                                 </div>
                                 </form>
                             </div>
@@ -52,110 +52,9 @@ Service zone
                     </div>
                     <h3 class="panel-title">Users list</h3>
                 </div>
-                <div class="panel-body">
+                <div class="panel-body" id="userList">
                     {% for username, stats in users.items %}
-                    <div class="col-sm-6">
-                    <div class="panel panel-default {% if stats.suspended > 0 %}text-muted{% endif %}">
-                        <div class="panel-heading">
-                            <a class="text-muted pull-right"><i class="glyphicon glyphicon-cog" data-toggle="modal" data-target="#customize-{{ username }}"></i></a>
-                            <h3 class="panel-title {% if stats.suspended > 0 %}text-muted{% endif %}">{{ username }}</h3>
-                            <div class="modal fade" id="customize-{{ username }}" tabindex="-1" role="dialog" aria-labelledby="label-customize-{{ username }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                                            <h4 class="modal-title" id="label-adduser">Customize {{ username }}</h4>
-                                        </div>
-                                        <form class="form-horizontal" role="form" method="get" action="/krakendash/user/{{ username }}/customize/">{% csrf_token %}
-                                            <div class="modal-body">
-                                                <div class="form-group">
-                                                    <label for="{{username}}-email" class="col-sm-2 control-label">Email</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="email" class="form-control" id="{{username}}-email" name="email" placeholder="Email" value="{{ stats.email }}">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="{{username}}-name" class="col-sm-2 control-label">Name</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="text" class="form-control" id="{{username}}-name" name="name" placeholder="Name" value="{{ stats.display_name }}">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="{{username}}-maxbuckets" class="col-sm-2 control-label">Max buckets</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="number" class="form-control" id="{{username}}-maxbuckets" name="maxbuckets" placeholder="Max buckets" value="{{ stats.max_buckets }}">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="{{username}}-maxobjects" class="col-sm-2 control-label">Max objects</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="number" class="form-control" id="{{username}}-maxobjects" name="maxobjects" placeholder="Max objects" value="{{ stats.user_quota.max_objects }}">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="{{username}}-maxsizekb" class="col-sm-2 control-label">Max size</label>
-                                                    <div class="col-sm-10 input-group">
-                                                        <input type="number" class="form-control" id="{{username}}-maxsizekb" name="maxsizekb" placeholder="Max size" value="{{ stats.user_quota.max_size_kb }}">
-                                                        <span class="input-group-addon">Kb</span>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="{{username}}-maxbuckobjects" class="col-sm-2 control-label">Max objects in bucket</label>
-                                                    <div class="col-sm-10">
-                                                        <input type="number" class="form-control" id="{{username}}-maxbuckobjects" name="maxbuckobjects" placeholder="Max objects" value="{{ stats.bucket_quota.max_objects }}">
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="{{username}}-maxbucksizekb" class="col-sm-2 control-label">Max size in bucket</label>
-                                                    <div class="col-sm-10 input-group">
-                                                        <input type="number" class="form-control" id="{{username}}-maxbucksizekb" name="maxbucksizekb" placeholder="Max size" value="{{ stats.bucket_quota.max_size_kb }}">
-                                                        <span class="input-group-addon">Kb</span>
-                                                    </div>
-                                                </div>
-                                                <span class="help-block">To disable any quota write "-1" into the appropriate field</span>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-success" id="addkey" username="{{username}}" data-toggle="popover" data-placement="top" data-trigger="focus">Add key</button>
-                                                <div class="btn-group btn-toggle pull-left">
-                                                    <button type="button" class="btn btn-xs {% if stats.suspended > 0 %}btn-warning active{%else%}btn-default{%endif%}" send_url="/krakendash/user/{{username}}/suspend/0/">Suspend</button>
-                                                    <button type="button" class="btn btn-xs {% if stats.suspended > 0 %}btn-default{%else%}btn-warning active{%endif%}" send_url="/krakendash/user/{{username}}/suspend/1/">Enable</button>
-                                                </div>
-
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                                <button type="submit" id="customize-user" class="btn btn-primary">Save</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-body text-left">
-                            <dl class="dl-horizontal">
-                                <dt>Name</dt><dd>{{ stats.display_name }}</dd>
-                                <dt>Email</dt><dd>{{ stats.email }}</dd>
-                                <dt>Keys</dt><dd>
-                                    {% for key in stats.keys %}
-                                    <span>{{ key.access_key}}</span>
-                                    {% endfor %}
-                                </dd>
-                                {% if stats.user_quota.enabled %}
-                                <dt>User quota</dt>
-                                <dd>
-                                    Max objects: {{ stats.user_quota.max_objects }}<br>
-                                    Max size: {{ stats.user_quota.max_size_kb|mul:1024|filesizeformat }}
-                                </dd>
-                                {% endif %}
-                                {% if stats.bucket_quota.enabled %}
-                                <dt>Bucket quota</dt>
-                                <dd>
-                                    Max objects: {{ stats.bucket_quota.max_objects }}<br>
-                                    Max size: {{ stats.bucket_quota.max_size_kb|mul:1024|filesizeformat }}
-                                </dd>
-                                {% endif %}
-                            </dl>
-                        </div>
-                    </div>
-                    </div>
+                        {% include "user.html" %}
                     {% endfor %}
                 </div>
             </div>
@@ -175,7 +74,7 @@ Service zone
                 dataType: 'html',
                 success: function () {
                     document.location.reload(true);
-                },
+                }
             });
         };
 
@@ -195,8 +94,21 @@ Service zone
             });
         };
 
+        $("#createUser").submit(function(e) {
+            $.ajax({
+                type: $(this).attr("method"),
+                url: $(this).attr("action"),
+                data: $(this).serialize(),
+                success: function(data) {
+                    $("#adduser").modal("hide");
+                    $("#userList").append(data);
+                }
+            });
+            e.preventDefault();
+        });
+
         $('button[send_url]').mousedown(click_url);
-        $('button[id=addkey]').focus(add_key);
+        $('button[username]').focus(add_key);
     });
 </script>
 {% endif %}
