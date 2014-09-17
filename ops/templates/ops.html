@@ -14,42 +14,7 @@ Service zone
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <a class="text-muted"><i class="glyphicon glyphicon-plus pull-right" data-toggle="modal" data-target="#adduser"></i></a>
-                    <div class="modal fade" id="adduser" tabindex="-1" role="dialog" aria-labelledby="label-adduser" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                                    <h4 class="modal-title" id="label-adduser">Create new user</h4>
-                                </div>
-                                <form class="form-horizontal" role="form" id="createUser" method="GET" action="/krakendash/user/0/adduser/">{% csrf_token %}
-                                <div class="modal-body">
-                                    <div class="form-group">
-                                        <label for="newEmail" class="col-sm-2 control-label">Email</label>
-                                        <div class="col-sm-10">
-                                            <input type="email" class="form-control" id="newEmail" name="newEmail" placeholder="Email">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="newUid" class="col-sm-2 control-label">UID</label>
-                                        <div class="col-sm-10">
-                                            <input type="text" class="form-control" id="newUid" name="newUid" placeholder="UID">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="newName" class="col-sm-2 control-label">Name</label>
-                                        <div class="col-sm-10">
-                                            <input type="text" class="form-control" id="newName" name="newName" placeholder="Name">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-primary">Create</button>
-                                </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                    {% include "new_user.html" %}
                     <h3 class="panel-title">Users list</h3>
                 </div>
                 <div class="panel-body" id="userList">
@@ -77,6 +42,7 @@ Service zone
                 }
             });
         };
+        $('button[send_url]').mousedown(click_url);
 
         var add_key = function () {
             var el = $(this);
@@ -90,9 +56,12 @@ Service zone
                     el.attr('data-original-title', data.access_key);
                     el.attr('data-content', data.secret_key);
                     el.popover("show");
+                    $("#" + data.user + "-keys").append("<span>" + data.access_key + "</span>\n");
+                    $("#customize-" + data.user).on('hidden.bs.modal', function () {el.popover("hide"); });
                 }
             });
         };
+        $('button[username]').mousedown(add_key);
 
         $("#createUser").submit(function(e) {
             $.ajax({
@@ -107,8 +76,6 @@ Service zone
             e.preventDefault();
         });
 
-        $('button[send_url]').mousedown(click_url);
-        $('button[username]').focus(add_key);
     });
 </script>
 {% endif %}
