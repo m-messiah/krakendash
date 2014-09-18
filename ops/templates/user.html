@@ -10,6 +10,7 @@
             <dl class="dl-horizontal">
                 <dt>Name</dt><dd>{{ stats.display_name }}</dd>
                 <dt>Email</dt><dd>{{ stats.email }}</dd>
+                <dt>Max buckets</dt><dd>{{ stats.max_buckets }}</dd>
                 <dt>Keys</dt><dd id="{{username}}-keys">
                     {% for key in stats.keys %}
                     <span>{{ key.access_key}}</span>
@@ -18,15 +19,15 @@
                 {% if stats.user_quota.enabled %}
                 <dt>User quota</dt>
                 <dd>
-                    Max objects: {{ stats.user_quota.max_objects }}<br>
-                    Max size: {{ stats.user_quota.max_size_kb|mul:1024|filesizeformat }}
+                    {% if stats.user_quota.max_objects > -1 %}Max objects: {{ stats.user_quota.max_objects }}<br>{% endif %}
+                    {% if stats.user_quota.max_size_kb > -1 %}Max size: {{ stats.user_quota.max_size_kb|mul:1024|filesizeformat }}{% endif %}
                 </dd>
                 {% endif %}
                 {% if stats.bucket_quota.enabled %}
                 <dt>Bucket quota</dt>
                 <dd>
-                    Max objects: {{ stats.bucket_quota.max_objects }}<br>
-                    Max size: {{ stats.bucket_quota.max_size_kb|mul:1024|filesizeformat }}
+                    {% if stats.bucket_quota.max_objects > -1 %}Max objects: {{ stats.bucket_quota.max_objects }}<br>{% endif %}
+                    {% if stats.bucket_quota.max_size_kb > -1 %}Max size: {{ stats.bucket_quota.max_size_kb|mul:1024|filesizeformat }}{% endif %}
                 </dd>
                 {% endif %}
             </dl>

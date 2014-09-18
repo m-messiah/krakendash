@@ -31,15 +31,17 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from subprocess import check_output
 import re
-import json
 
 from django.shortcuts import render_to_response
 from django.conf import settings
 from cephclient import wrapper
 import requests
 from humanize import filesize
+from rgwadmin import RGWAdmin
+
+rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
+                    settings.S3_SERVER, secure=False)
 
 
 def req(url):
@@ -158,16 +160,11 @@ def home(request):
             osds_crit += 1
 
     # Users and stats
-    buckets_list = json.loads(check_output(["radosgw-admin",
-                                            "buckets",
-                                            "list"]))
+    buckets_list = rgwAdmin.get_bucket()
     users_stat = {}
     for bucket in buckets_list:
         try:
-            bucket_stat = json.loads(
-                check_output(["radosgw-admin",
-                              "bucket", "stats",
-                              "--bucket={0}".format(bucket)]))
+            bucket_stat = rgwAdmin.get_bucket(bucket)
             if bucket_stat["owner"] in users_stat:
                 users_stat[
                     bucket_stat["owner"]

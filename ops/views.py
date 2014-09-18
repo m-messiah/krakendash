@@ -31,33 +31,33 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from subprocess import check_output
 import json
 from django.http import HttpResponse
-
-from django.shortcuts import render_to_response
+from django.conf import settings
 from django.shortcuts import render
 from django.shortcuts import redirect
+from rgwadmin import RGWAdmin
+
+rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
+                    settings.S3_SERVER, secure=False)
 
 
 def param(request, key):
     if key not in request.GET:
         raise Exception(key + "not found in request")
-    return escape(request.GET[key])
+    return request.GET[key]
 
 
-def escape(s):
-    return s.replace("'", "'\\''").replace("#", "'\\#'").replace("&", "'\\&'")
+def get_user_info(username):
+    userinfo = rgwAdmin.get_user(username)
+    userinfo.update({"user_quota": rgwAdmin.get_quota(username, "user"),
+                     "bucket_quota": rgwAdmin.get_quota(username, "bucket")})
+    return userinfo
 
 
 def ops(request):
-    users_list = json.loads(check_output(["radosgw-admin", "metadata",
-                                          "list", "user"]))
-    users = {}
-    for username in users_list:
-        users[username] = json.loads(
-            check_output(["radosgw-admin", "user", "info",
-                          "--uid={0}".format(username)]))
+    users = {username: get_user_info(username)
+             for username in rgwAdmin.get_users()}
     return render(request, 'ops.html', locals())
 
 
@@ -65,10 +65,8 @@ def user_custom(request, user, func, argument):
     if func:
         func = func[1:]
     else:
-        users = {user: json.loads(
-            check_output(["radosgw-admin", "user", "info",
-                          "--uid={0}".format(user)]))}
-        return render_to_response('ops.html', locals())
+        return ops(request)
+
     if argument:
         argument = argument[1:]
 
@@ -80,106 +78,73 @@ def user_custom(request, user, func, argument):
         except Exception as e:
             error = e
         else:
-            res = json.loads(
-                check_output(["radosgw-admin", "user", "create",
-                              "--uid={0}".format(uid),
-                              "--display-name={0}".format(name),
-                              "--email={0}".format(email)]))
+            res = rgwAdmin.create_user(uid, name, email)
             return render(request, "user.html", {"username": uid,
                                                  "stats": res})
 
     elif func == "suspend":
         if int(argument) > 0:
-            res = check_output(["radosgw-admin", "user", "enable",
-                                "--uid={0}".format(escape(user))])
+            res = rgwAdmin.modify_user(user, generate_key=False)
         else:
-            res = check_output(["radosgw-admin", "user", "suspend",
-                                "--uid={0}".format(escape(user))])
+            res = rgwAdmin.modify_user(user, generate_key=False,
+                                       suspended=True)
 
     elif func == "addkey":
-        old = json.loads(
-            check_output(["radosgw-admin", "user", "info",
-                          "--uid={0}".format(escape(user))]))["keys"]
-        res = json.loads(
-            check_output(["radosgw-admin", "user", "modify",
-                          "--uid={0}".format(escape(user)),
-                          "--gen-access-key"]))["keys"]
+        old = rgwAdmin.get_user(user)["keys"]
+        res = rgwAdmin.create_key(user)
         newkey = [item for item in res if item not in old][0]
         return HttpResponse(json.dumps(newkey),
                             content_type='application/json')
 
-    elif func == "deletekey":
-        res = check_output(["radosgw-admin", "key", "rm",
-                            "--uid={0}".format(escape(user)),
-                            "--access-key={0}".format(escape(argument))])
-
     elif func == "customize":
         try:
-            user_info = json.loads(
-                check_output(["radosgw-admin", "user", "info",
-                              "--uid={0}".format(escape(user))]))
-            command = ["radosgw-admin", "user", "modify",
-                       "--uid={0}".format(escape(user))]
-
+            p_name, p_email, p_maxbuckets = None, None, None
+            p_maxobjects, p_maxsizekb = None, None
+            user_info = get_user_info(user)
+            suspended = user_info["suspended"]
             email = param(request, 'email')
             name = param(request, 'name')
-            maxbuckets = param(request, 'maxbuckets')
-            maxobjects = param(request, 'maxobjects')
+            maxbuckets = int(param(request, 'maxbuckets'))
+            maxobjects = int(param(request, 'maxobjects'))
             maxsizekb = int(param(request, 'maxsizekb'))
-            maxbuckobjects = param(request, 'maxbuckobjects')
+            maxbuckobjects = int(param(request, 'maxbuckobjects'))
             maxbucksizekb = int(param(request, 'maxbucksizekb'))
+
+            # Change name, email, max buckets
             if email != user_info["email"]:
-                command.append("--email={0}".format(email))
+                p_email = email
             if name != user_info["display_name"]:
-                command.append("--display_name={0}".format(name))
+                p_name = name
+            if maxbuckets != user_info["max_buckets"]:
+                p_maxbuckets = maxbuckets
 
-            if len(command) > 4:
-                res = check_output(command)
+            res = rgwAdmin.modify_user(user, p_name, p_email,
+                                       max_buckets=p_maxbuckets,
+                                       generate_key=False,
+                                       suspended=suspended)
 
-            command = ["radosgw-admin", "quota", "set",
-                       "--uid={0}".format(escape(user)),
-                       "--quota-scope=user"]
-
+            # Change user quota
             if maxobjects != user_info["user_quota"]["max_objects"]:
-                command.append("--max-objects={0}".format(maxobjects))
+                p_maxobjects = maxobjects
 
             if maxsizekb != int(user_info["user_quota"]["max_size_kb"]):
-                if maxsizekb > 0:
-                    maxsizekb *= 1024
-                command.append("--max-size={0}".format(maxsizekb))
+                p_maxsizekb = maxsizekb
 
-            if len(command) > 5:
-                res = check_output(command)
-                res = check_output(["radosgw-admin", "quota", "enable",
-                                    "--quota-scope=user",
-                                    "--uid={0}".format(escape(user))])
-            if (int(maxobjects) == maxsizekb) and maxsizekb < 0:
-                res = check_output(["radosgw-admin", "quota", "disable",
-                                    "--quota-scope=user",
-                                    "--uid={0}".format(escape(user))])
+            res = rgwAdmin.set_quota(
+                user, "user", p_maxsizekb, p_maxobjects,
+                enabled=(maxobjects > -1 or maxsizekb > -1))
 
-            command = ["radosgw-admin", "quota", "set",
-                       "--uid={0}".format(escape(user)),
-                       "--quota-scope=bucket"]
-
+            # Change bucket quota
+            p_maxobjects, p_maxsizekb = None, None
             if maxbuckobjects != user_info["bucket_quota"]["max_objects"]:
-                command.append("--max-objects={0}".format(maxbuckobjects))
+                p_maxobjects = maxbuckobjects
 
             if maxbucksizekb != int(user_info["bucket_quota"]["max_size_kb"]):
-                if maxbucksizekb > 0:
-                    maxbucksizekb *= 1024
-                command.append("--max-size={0}".format(maxbucksizekb))
+                p_maxsizekb = maxbucksizekb
 
-            if len(command) > 5:
-                res = check_output(command)
-                res = check_output(["radosgw-admin", "quota", "enable",
-                                    "--quota-scope=bucket",
-                                    "--uid={0}".format(escape(user))])
-
-            if (int(maxbuckobjects) == maxbucksizekb) and maxbucksizekb < 0:
-                res = check_output(["radosgw-admin", "quota", "disable",
-                                    "--quota-scope=bucket",
-                                    "--uid={0}".format(escape(user))])
+            res = rgwAdmin.set_quota(
+                user, "bucket", p_maxsizekb, p_maxobjects,
+                enabled=(maxbuckobjects > -1 or maxbucksizekb > -1))
 
         except Exception as e:
             error = e
