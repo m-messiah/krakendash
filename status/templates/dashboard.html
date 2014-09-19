@@ -77,16 +77,50 @@ CRIT
                     <h3 class="panel-title">Usage</h3>
                 </div>
                 <div class="panel-body">
-                    <div id="gauge-usage" style="width:220px; height:140px"></div>
+                    <div id="gauge-usage"></div>
                         <script>
-                            var g = new JustGage({
-                            id: "gauge-usage",
-                            value: {{ data_used }},
-                            min: 0,
-                            max: {{ data_avail }},
-                            title: "Data Usage",
-                            label: "{{ data_scale }}"
-                            });
+                            var draw_usage = function() {
+                                var size = $("#gauge-usage").width(),
+                                R = size / 2.5,
+                                strength = size / 5,
+                                center = size / 2;
+                                param = {stroke: "#fff", "stroke-width": strength},
+                                r = Raphael("gauge-usage", size, size / 2 + strength);
+                                r.customAttributes.arc = function (value, total, R, bg) {
+                                        var alpha = 180 / total * value,
+                                            a = (180 - alpha) * Math.PI / 180,
+                                            x = center + R * Math.cos(a),
+                                            y = center - R * Math.sin(a),
+                                            path;
+                                        if (value < (total / 3)) {
+                                            color = "#b6de71";
+                                        } else if (value > (2 * total / 3)) {
+                                            color = "#cc5454";
+                                        } else {
+                                            color = "#edd268";
+                                        }
+                                        if (bg) {
+                                            color = "#fdfdfd";
+                                        }
+                                        if (total == value) {
+                                            path = [["M", center - R, center], ["A", R, R, 0, 0, 1, center + R, center ]];
+                                        } else {
+                                            path = [["M", center - R, center], ["A", R, R, 0, +(alpha > 180), 1, x, y]];
+                                        }
+                                        return {path: path, stroke: color};
+                                };
+                                var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
+                                var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
+                                scale.animate({arc: [{{ data_used }}, {{ data_avail }}, R]}, 900, '>');
+                                var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
+                                var hoverOut = function() {this.attr({"stroke-width": strength});}
+                                scale.hover(hoverIn, hoverOut, scale, scale);
+                                r.text(center - R, center + 10, "0").attr({fill: "#ccc" });
+                                r.text(center + R, center + 10, "{{ data_avail }}").attr({fill: "#ccc" });
+                                r.text(center, center - strength / 2, "{{ data_used }}").attr({"font-weight": 600, "font-size": strength / 1.2});
+                                r.text(center, center + 10, "{{ data_scale }}").attr({fill: "#ccc", "font-size": strength / 2.5 });
+                            };
+                            draw_usage();
                         </script>
                     </div>
                 </div>
@@ -168,39 +202,57 @@ CRIT
                 <h3 class="panel-title">S3 users</h3>
             </div>
             <div class="panel-body">
-                <div class="row">
+                <div class="row"><script>var draw = new Array();</script>
                     {% for user, data in users_stat.items %}
-                     <div class="col-sm-3" style="height:{{data|length|sub:1|mul:70|add:170}}px;">
-                        {% for bucket, stat in data.items reversed %}
-                        <div id="gauge-{{ user }}-{{ bucket }}" style="width:220px; height:140px; display: inline-block; position: absolute; left:0;"></div>
+                     <div class="col-sm-3">
+                        <div id="gauge-{{ user }}"></div>
                         <script>
-                                        var g = new JustGage({
-                                        id: "gauge-{{ user }}-{{ bucket }}",
-                                        value: +({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)).toFixed(3),
-                                        min: 0,
-                                        gaugeWidthScale: {{ data|length|add:1|sub:forloop.counter}} / {{ data | length }},
-                                        title: "{{ user }}",
-                                        {% ifnotequal forloop.counter 1 %}
-                                        showMinMax:false,
-                                        {% endifnotequal %}
-                                        {% ifnotequal data|length 1 %}
-                                        valueFontColor: "#fff",
-                                        {% endifnotequal %}
-                                        max: {{ data_avail }},
-                                        label: "{{ data_scale }}"
-                                        });
+                            draw["{{user}}"] = function() {
+                                var size = $("#gauge-{{ user }}").width(),
+                                R = size / 2.5,
+                                strength = size / 10,
+                                center = size / 2;
+                                param = {stroke: "#fff", "stroke-width": strength},
+                                r = Raphael("gauge-{{ user }}", size, size / 2);
+                                r.customAttributes.arc = function (value, total, R, bg, user, bucket) {
+                                        var alpha = 180 / total * value,
+                                            a = (180 - alpha) * Math.PI / 180,
+                                            x = center + R * Math.cos(a),
+                                            y = center - R * Math.sin(a),
+                                            color = "hsb(".concat(Math.round(R) / (size / 2.5), ",", value / total, ", .75)"),
+                                           path;
+                                        if (user && bucket) {
+                                            $("p#legend-" + user + "-" + bucket).css("color", Raphael.getRGB("hsb(".concat(Math.round(R) / (size / 2.5), ", .6, .75)")).hex);
+                                        }
+                                        if (bg) {
+                                            color = "#fdfdfd";
+                                        }
+                                        if (total == value) {
+                                            path = [["M", center - R, center], ["A", R, R, 0, 0, 1, center + R, center ]];
+                                        } else {
+                                            path = [["M", center - R, center], ["A", R, R, 0, +(alpha > 180), 1, x, y]];
+                                        }
+                                        return {path: path, stroke: color};
+                                    };
+                                {% for bucket, stat in data.items %}
+                                var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
+                                var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
+                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }}, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
+                                var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
+                                var hoverOut = function() {this.attr({"stroke-width": strength});}
+                                scale.hover(hoverIn, hoverOut, scale, scale);
+                                R -= size / 15 + 10;
+                                {% endfor %}
+                            };
+                            draw["{{user}}"]();
+
                         </script>
-                        {% endfor %}
-                        <div style="position:absolute;bottom:0;height:{{data|length|sub:1|mul:70}}px;width:70%;text-align:left;">
+                        <div>
                             <ul class="list-unstyled">
                             {% for bucket, stat in data.items %}
                                 <li>
                                     <span class="badge pull-right">{{stat.size_kb|mul:1024|filesizeformat}} </span>
-                                    {% if stat.size_kb|div:1048576 > data_avail|div:4 %}
-                                    <p class="text-danger">{{ bucket }}</p>
-                                    {% else %}
-                                    {{ bucket }}
-                                    {% endif %}
+                                    <p class="text-left" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}</p>
                                 </li>
                             {% endfor %}
                             </ul>
@@ -210,14 +262,10 @@ CRIT
                 </div>
             </div>
         </div>
-    <!--div class="alert alert-success alert-dismissable">
-        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-        <strong>Help Tip: </strong>Click on an OSD to get its details.
-    </div-->
 </div>
 <script type="text/javascript">
     $(document).ready(function(){
-        get_osd_data = function() {
+        var get_osd_data = function () {
             var el = $(this);
             var _data = el.attr('alt');
             var send_url = el.attr('send_url');
@@ -226,21 +274,14 @@ CRIT
                 url: send_url,
                 data: _data,
                 dataType: 'html',
-                success: function(data) {
+                success: function (data) {
                     el.attr('data-content', data);
                     el.popover('show');
                 }
             });
-        }
+        };
 
-        $('button').popover({
-            trigger: 'hover',
-            html: true,
-            delay: {
-                hide: 0,
-            },
-        });
-
+        $('button').popover({trigger: 'hover', html: true, delay: {hide: 0}});
         $('button').click(get_osd_data);
     });
 </script>

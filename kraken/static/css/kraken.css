@@ -25,3 +25,4 @@
 .table-curved > :last-child > :last-child > :last-child {
     border-radius: 0 0 6px 0;
 }
+.popover{max-width:600px}
