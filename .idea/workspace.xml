@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="1612c31b-a6ed-4634-b833-6e95d6b64e34" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/status/templates/dashboard.html" afterPath="$PROJECT_DIR$/status/templates/dashboard.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/kraken/static/css/kraken.css" afterPath="$PROJECT_DIR$/kraken/static/css/kraken.css" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="krakendash.iws" />
@@ -30,7 +29,7 @@
       <file leaf-file-name="layout.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/status/templates/layout.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-25.375" vertical-offset="396" max-vertical-offset="1290">
+            <state vertical-scroll-proportion="-19.75" vertical-offset="531" max-vertical-offset="1290">
               <caret line="67" column="21" selection-start-line="67" selection-start-column="21" selection-end-line="67" selection-end-column="21" />
               <folding />
             </state>
@@ -60,11 +59,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="dashboard.html" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="dashboard.html" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/status/templates/dashboard.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.125" vertical-offset="0" max-vertical-offset="4365">
-              <caret line="5" column="2" selection-start-line="5" selection-start-column="2" selection-end-line="5" selection-end-column="2" />
+            <state vertical-scroll-proportion="0.30865923" vertical-offset="2749" max-vertical-offset="4395">
+              <caret line="198" column="4" selection-start-line="198" selection-start-column="4" selection-end-line="198" selection-end-column="4" />
               <folding />
             </state>
           </provider>
@@ -80,10 +79,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="kraken.css" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="kraken.css" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/kraken/static/css/kraken.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="753">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="525">
               <caret line="0" column="42" selection-start-line="0" selection-start-column="42" selection-end-line="0" selection-end-column="42" />
               <folding />
             </state>
@@ -161,8 +160,8 @@
         <option value="$PROJECT_DIR$/ops/templates/ops.html" />
         <option value="$PROJECT_DIR$/status/templates/layout.html" />
         <option value="$PROJECT_DIR$/requirements.txt" />
-        <option value="$PROJECT_DIR$/status/templates/dashboard.html" />
         <option value="$PROJECT_DIR$/kraken/static/css/kraken.css" />
+        <option value="$PROJECT_DIR$/status/templates/dashboard.html" />
       </list>
     </option>
   </component>
@@ -1071,9 +1070,17 @@
         <state />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/kraken/static/css/kraken.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="753">
+          <caret line="0" column="42" selection-start-line="0" selection-start-column="42" selection-end-line="0" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/status/templates/layout.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-25.375" vertical-offset="396" max-vertical-offset="1290">
+        <state vertical-scroll-proportion="-19.75" vertical-offset="531" max-vertical-offset="1290">
           <caret line="67" column="21" selection-start-line="67" selection-start-column="21" selection-end-line="67" selection-end-column="21" />
           <folding />
         </state>
@@ -1081,16 +1088,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/status/templates/dashboard.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.125" vertical-offset="0" max-vertical-offset="4365">
-          <caret line="5" column="2" selection-start-line="5" selection-start-column="2" selection-end-line="5" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/kraken/static/css/kraken.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="753">
-          <caret line="0" column="42" selection-start-line="0" selection-start-column="42" selection-end-line="0" selection-end-column="42" />
+        <state vertical-scroll-proportion="0.30865923" vertical-offset="2749" max-vertical-offset="4395">
+          <caret line="198" column="4" selection-start-line="198" selection-start-column="4" selection-end-line="198" selection-end-column="4" />
           <folding />
         </state>
       </provider>

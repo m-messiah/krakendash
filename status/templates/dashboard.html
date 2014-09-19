@@ -18,65 +18,65 @@ CRIT
                 <div class="panel-heading">
                     <h3 class="panel-title">Health</h3>
                 </div>
-            <div class="panel-body">
-                {% if cluster_health.output.overall_status == "HEALTH_OK" %}
-                  <h1 class="text-success">OK</h1>
-                {% elif cluster_health.output.overall_status == "HEALTH_WARN" %}
-                  <h1 class="text-warning">WARN</h1>
-                {% else %}
-                  <h1 class="text-danger">CRIT</h1>
-                {% endif %}
+                <div class="panel-body">
+                    {% if cluster_health.output.overall_status == "HEALTH_OK" %}
+                      <h1 class="text-success">OK</h1>
+                    {% elif cluster_health.output.overall_status == "HEALTH_WARN" %}
+                      <h1 class="text-warning">WARN</h1>
+                    {% else %}
+                      <h1 class="text-danger">CRIT</h1>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-sm-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Status</h3>
-            </div>
-            <div class="panel-body">
-                <table class="table table-condensed">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th class="text-center">OK</th>
-                            <th class="text-center">WARN</th>
-                            <th class="text-center">CRIT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><b>MON</b></td>
-                            <td>{{ mons_ok }}</td>
-                            <td>{{ mons_warn }}</td>
-                            <td>{{ mons_crit }}</td>
-                        </tr>
-                        <tr>
-                            <td><b>OSD</b></td>
-                            <td>{{ osds_ok }}</td>
-                            <td>{{ osds_warn }}</td>
-                            <td>{{ osds_crit }}</td>
-                        </tr>
-                        <tr>
-                            <td><b>PG</b></td>
-                            <td>{{ pg_ok }}</td>
-                            <td>{{ pg_warn }}</td>
-                            <td>{{ pg_crit }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Status</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th class="text-center">OK</th>
+                                <th class="text-center">WARN</th>
+                                <th class="text-center">CRIT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>MON</b></td>
+                                <td>{{ mons_ok }}</td>
+                                <td>{{ mons_warn }}</td>
+                                <td>{{ mons_crit }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>OSD</b></td>
+                                <td>{{ osds_ok }}</td>
+                                <td>{{ osds_warn }}</td>
+                                <td>{{ osds_crit }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>PG</b></td>
+                                <td>{{ pg_ok }}</td>
+                                <td>{{ pg_warn }}</td>
+                                <td>{{ pg_crit }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-sm-3">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Usage</h3>
-            </div>
-            <div class="panel-body">
-                <div id="gauge-usage"></div>
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Usage</h3>
+                </div>
+                <div class="panel-body">
+                    <div id="gauge-usage"></div>
                     <script>
                         var draw_usage = function() {
                             var size = $("#gauge-usage").width(),
@@ -132,69 +132,71 @@ CRIT
                 <div class="panel-heading">
                     <h3 class="panel-title">PG States</h3>
                 </div>
-            <div class="panel-body">
-                <!--
-                <div class="table-responsive">
-                  <table class="table table-curved">
-                    <tr>
-                      <td>state</td>
-                      <td>count</td>
-                    </tr>
-                  {% for k, v in pg_states.items %}
-                    <tr>
-                      <td>{{ k }}</td>
-                      <td>{{ v }}</td>
-                    </tr>
-                  {% endfor %}
-                  </table>
+                <div class="panel-body">
+                    <!--
+                    <div class="table-responsive">
+                      <table class="table table-curved">
+                        <tr>
+                          <td>state</td>
+                          <td>count</td>
+                        </tr>
+                      {% for k, v in pg_states.items %}
+                        <tr>
+                          <td>{{ k }}</td>
+                          <td>{{ v }}</td>
+                        </tr>
+                      {% endfor %}
+                      </table>
+                    </div>
+                    -->
+                    <ul class="list-group">
+                        {% for k, v in pg_states.items %}
+                            <li class="list-group-item">
+                                <span class="badge">{{ v }}</span>
+                                {{ k }}
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
-                -->
-                <ul class="list-group">
-                    {% for k, v in pg_states.items %}
-                        <li class="list-group-item">
-                            <span class="badge">{{ v }}</span>
-                            {{ k }}
-                        </li>
+            </div>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title" id="osdNotice">OSD Status</h3>
+                </div>
+                <div class="panel-body" align="left">
+                    <style>p.osd_button { line-height: 300%; }</style>
+                    <p class="osd_button">
+                        {% for osd in osd_state %}
+                            {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
+                                <button type="button" class="btn btn-xs btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                            {% else %}
+                                <button type="button" class="btn btn-xs btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                            {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Activity</h3>
+                </div>
+                <div class="panel-body">
+                    {% for label, data in activities.items %}
+                        {{ label }}: {{ data }}/Sec <br />
+                    {% empty %}
+                        Cluster is idle.
                     {% endfor %}
-                </ul>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-sm-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title" id="osdNotice">OSD Status</h3>
-            </div>
-            <div class="panel-body" align="left">
-                <style>p.osd_button { line-height: 300%; }</style>
-                <p class="osd_button">
-                    {% for osd in osd_state %}
-                        {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
-                            <button type="button" class="btn btn-xs btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
-                        {% else %}
-                            <button type="button" class="btn btn-xs btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
-                        {% endif %}
-                    {% endfor %}
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-sm-3">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Activity</h3>
-            </div>
-            <div class="panel-body">
-                {% for label, data in activities.items %}
-                    {{ label }}: {{ data }}/Sec <br />
-                {% empty %}
-                    Cluster is idle.
-                {% endfor %}
-            </div>
-        </div>
-    </div>
     <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">S3 users</h3>
