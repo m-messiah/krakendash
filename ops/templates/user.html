@@ -2,7 +2,8 @@
 <div class="col-sm-6">
     <div class="panel panel-default {% if stats.suspended > 0 %}text-muted{% endif %}">
         <div class="panel-heading">
-            <a class="text-muted pull-right"><i class="glyphicon glyphicon-cog" data-toggle="modal" data-target="#customize-{{ username }}"></i></a>
+            <a id="toggle-customize-{{username}}" class="pull-right text-muted"><i class="glyphicon glyphicon-cog"></i></a>
+            <script>$("#toggle-customize-{{username}}").mousedown(function(){$('#customize-{{ username }}').modal('toggle');});</script>
             <h3 class="panel-title {% if stats.suspended > 0 %}text-muted{% endif %}">{{ username }}</h3>
             {% include "customize_user.html" %}
         </div>
@@ -13,7 +14,7 @@
                 <dt>Max buckets</dt><dd>{{ stats.max_buckets }}</dd>
                 <dt>Keys</dt><dd id="{{username}}-keys">
                     {% for key in stats.keys %}
-                    <span>{{ key.access_key}}</span>
+                    <span>{{ key.access_key}}</span>{% if new %}<br><strong>Secret: </strong><span>{{key.secret_key}}</span>{% endif %}
                     {% endfor %}
                 </dd>
                 {% if stats.user_quota.enabled %}

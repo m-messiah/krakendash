@@ -56,14 +56,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container">
+        <div class="container-fluid">
             <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed glyphicon glyphicon-th-list text-muted" data-toggle="collapse" data-target="#navbar-collapse-1">
+                </button>
                 <a class="navbar-brand" href="/krakendash">Kraken</a>
             </div>
-            <div class="collapse navbar-collapse">
+            <div class="collapse navbar-collapse" id="navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li><a href="/krakendash">Dashboard</a></li>
-                    <li><a href="/krakendash/ops">ops</a></li>
+                    <li><a href="/krakendash/ops">Service</a></li>
                 </ul>
             </div>
         </div>

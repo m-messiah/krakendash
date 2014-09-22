@@ -80,7 +80,8 @@ def user_custom(request, user, func, argument):
         else:
             res = rgwAdmin.create_user(uid, name, email)
             return render(request, "user.html", {"username": uid,
-                                                 "stats": res})
+                                                 "stats": res,
+                                                 "new": True})
 
     elif func == "suspend":
         if int(argument) > 0:
