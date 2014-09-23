@@ -81,7 +81,6 @@ CRIT
                         var draw_usage = function() {
                             var size = $("#gauge-usage").width(),
                             R = size / 2.5,
-                            color = "#f2f2f2",
                             strength = size / 5,
                             center = size / 2,
                             param = {stroke: "#fff", "stroke-width": strength},
@@ -99,6 +98,7 @@ CRIT
                                     } else {
                                         color = "#edd268";
                                     }
+                                    if (bg) { color = "#f2f2f2";}
                                     if (total == value) {
                                         path = [["M", center - R, center], ["A", R, R, 0, 0, 1, center + R, center ]];
                                     } else {
@@ -106,7 +106,7 @@ CRIT
                                     }
                                     return {path: path, stroke: color};
                             };
-                            var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R]});
+                            var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
                             var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
                             scale.animate({arc: [{{ data_used }}, {{ data_avail }}, R]}, 900, '>');
                             var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
