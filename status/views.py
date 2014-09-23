@@ -166,12 +166,21 @@ def home(request):
         try:
             bucket_stat = rgwAdmin.get_bucket(bucket)
             if bucket_stat["owner"] in users_stat:
-                users_stat[
-                    bucket_stat["owner"]
-                ][bucket] = bucket_stat["usage"]["rgw.main"]
+                if "rgw.main" in bucket_stat["usage"]:
+                    users_stat[
+                        bucket_stat["owner"]
+                    ][bucket] = bucket_stat["usage"]["rgw.main"]
+                else:
+                    users_stat[
+                        bucket_stat["owner"]
+                    ][bucket] = {}
             else:
-                users_stat[bucket_stat["owner"]] = {
-                    bucket: bucket_stat["usage"]["rgw.main"]}
+                if "rgw.main" in bucket_stat["usage"]:
+                    users_stat[bucket_stat["owner"]] = {
+                        bucket: bucket_stat["usage"]["rgw.main"]}
+                else:
+                    users_stat[bucket_stat["owner"]] = {
+                        bucket: {}}
         except:
             pass
     return render_to_response('dashboard.html', locals())

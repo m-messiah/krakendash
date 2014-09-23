@@ -81,8 +81,9 @@ CRIT
                         var draw_usage = function() {
                             var size = $("#gauge-usage").width(),
                             R = size / 2.5,
+                            color = "#f2f2f2",
                             strength = size / 5,
-                            center = size / 2;
+                            center = size / 2,
                             param = {stroke: "#fff", "stroke-width": strength},
                             r = Raphael("gauge-usage", size, size / 2 + strength);
                             r.customAttributes.arc = function (value, total, R, bg) {
@@ -98,9 +99,6 @@ CRIT
                                     } else {
                                         color = "#edd268";
                                     }
-                                    if (bg) {
-                                        color = "#f2f2f2";
-                                    }
                                     if (total == value) {
                                         path = [["M", center - R, center], ["A", R, R, 0, 0, 1, center + R, center ]];
                                     } else {
@@ -108,16 +106,16 @@ CRIT
                                     }
                                     return {path: path, stroke: color};
                             };
-                            var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
+                            var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R]});
                             var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
                             scale.animate({arc: [{{ data_used }}, {{ data_avail }}, R]}, 900, '>');
                             var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
-                            var hoverOut = function() {this.attr({"stroke-width": strength});}
+                            var hoverOut = function() {this.attr({"stroke-width": strength});};
                             scale.hover(hoverIn, hoverOut, scale, scale);
                             r.text(center - R, center + 10, "0").attr({fill: "#ccc" });
                             r.text(center + R, center + 10, "{{ data_avail }}").attr({fill: "#ccc" });
-                            r.text(center, center - strength / 2, "{{ data_used }}").attr({"font-weight": 600, "font-size": strength / 1.2});
-                            r.text(center, center + 10, "{{ data_scale }}").attr({fill: "#ccc", "font-size": strength / 2.5 });
+                            r.text(center, center - strength / 3.4, "{{ data_used }}").attr({"font-weight": 600, "font-size": strength / 1.2});
+                            r.text(center, center + ((strength / 5 > 10)? 2 + strength / 5 : 10), "{{ data_scale }}").attr({fill: "#ccc", "font-size": (strength / 2.5 > 10)? strength / 2.5 : 10 });
                         };
                         draw_usage();
                     </script>
@@ -235,13 +233,15 @@ CRIT
                                     return {path: path, stroke: color};
                                 };
                             {% for bucket, stat in data.items %}
-                            var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
-                            var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
-                            scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }}, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
-                            var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
-                            var hoverOut = function() {this.attr({"stroke-width": strength});}
-                            scale.hover(hoverIn, hoverOut, scale, scale);
-                            R -= size / 15 + 10;
+                            {% if stat %}
+                                var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
+                                var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
+                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }}, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
+                                var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
+                                var hoverOut = function() {this.attr({"stroke-width": strength});}
+                                scale.hover(hoverIn, hoverOut, scale, scale);
+                                R -= size / 15 + 10;
+                            {% endif %}
                             {% endfor %}
                         };
                         draw["{{user}}"]();
@@ -251,8 +251,8 @@ CRIT
                         <ul class="list-unstyled">
                         {% for bucket, stat in data.items %}
                             <li>
-                                <span class="badge pull-right">{{stat.size_kb|mul:1024|filesizeformat}} </span>
-                                <p class="text-left" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}</p>
+                                {% if stat %}<span class="badge pull-right">{{stat.size_kb|mul:1024|filesizeformat}} </span>{% endif %}
+                                <p class="text-left {% if not stat %}text-muted{% endif %}" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}</p>
                             </li>
                         {% endfor %}
                         </ul>
