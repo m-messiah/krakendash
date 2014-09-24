@@ -10,8 +10,7 @@ Service zone
         <div class="row">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <a id="toggle-adduser" class="text-muted pull-right"><i class="glyphicon glyphicon-plus"></i></a>
-                    <script>$("#toggle-adduser").mousedown(function(){$('#adduser').modal('toggle');});</script>
+                    <button id="toggle-adduser" class="btn btn-toggle text-muted" data-toggle="modal" data-target="#adduser"><i class="glyphicon glyphicon-plus"></i></button>
                     {% include "new_user.html" %}
                     <h3 class="panel-title">Users list</h3>
                 </div>

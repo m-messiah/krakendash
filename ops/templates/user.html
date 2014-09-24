@@ -2,8 +2,7 @@
 <div class="col-sm-6">
     <div class="panel panel-default {% if stats.suspended > 0 %}text-muted{% endif %}">
         <div class="panel-heading">
-            <a id="toggle-customize-{{username}}" class="pull-right text-muted"><i class="glyphicon glyphicon-cog"></i></a>
-            <script>$("#toggle-customize-{{username}}").mousedown(function(){$('#customize-{{ username }}').modal('toggle');});</script>
+            <button id="toggle-customize-{{username}}" class="btn btn-toggle text-muted" data-toggle="modal" data-target="#customize-{{ username }}"><i class="glyphicon glyphicon-cog"></i></button>
             <h3 class="panel-title {% if stats.suspended > 0 %}text-muted{% endif %}">{{ username }}</h3>
             {% include "customize_user.html" %}
         </div>

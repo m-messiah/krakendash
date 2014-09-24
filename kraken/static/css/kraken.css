@@ -27,3 +27,5 @@ body {padding-top:70px;text-align:center;}
     border-radius: 0 0 6px 0;
 }
 .popover{max-width:600px}
+
+.btn-toggle {background: none; float: right;position: relative; top: -6pt; right: -10pt;}
