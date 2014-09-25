@@ -203,6 +203,7 @@ CRIT
             <div class="row"><script>var draw = new Array();</script>
                 {% for user, data in users_stat.items %}
                  <div class="col-sm-3">
+                    <div>{{ user }}</div>
                     <div id="gauge-{{ user }}"></div>
                     <script>
                         draw["{{user}}"] = function() {
