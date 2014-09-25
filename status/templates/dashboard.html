@@ -20,11 +20,11 @@ CRIT
                 </div>
                 <div class="panel-body">
                     {% if cluster_health.output.overall_status == "HEALTH_OK" %}
-                      <h1 class="text-success">OK</h1>
+                      <h1 class="text-success"><i class="glyphicon glyphicon-ok"></i></h1>
                     {% elif cluster_health.output.overall_status == "HEALTH_WARN" %}
-                      <h1 class="text-warning">WARN</h1>
+                      <h1 class="text-warning"><i class="glyphicon glyphicon-warning-sign"></i></h1>
                     {% else %}
-                      <h1 class="text-danger">CRIT</h1>
+                      <h1 class="text-danger"><i class="glyphicon glyphicon-fire"></i></h1>
                     {% endif %}
                 </div>
             </div>
@@ -40,9 +40,9 @@ CRIT
                         <thead>
                             <tr>
                                 <th></th>
-                                <th class="text-center">OK</th>
-                                <th class="text-center">WARN</th>
-                                <th class="text-center">CRIT</th>
+                                <th class="text-center"><i class="glyphicon glyphicon-ok"></i></th>
+                                <th class="text-center"><i class="glyphicon glyphicon-warning-sign"></i></th>
+                                <th class="text-center"><i class="glyphicon glyphicon-fire"></i></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -169,9 +169,9 @@ CRIT
                     <p class="osd_button">
                         {% for osd in osd_state %}
                             {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
-                                <button type="button" class="btn btn-xs btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                <button id="osd_data" type="button" class="btn btn-xs btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
                             {% else %}
-                                <button type="button" class="btn btn-xs btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                <button id="osd_data" type="button" class="btn btn-xs btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
                             {% endif %}
                         {% endfor %}
                     </p>
@@ -186,7 +186,12 @@ CRIT
                 </div>
                 <div class="panel-body">
                     {% for label, data in activities.items %}
-                        {{ label }}: {{ data }}/Sec <br />
+                    {% if label == "Read" %}
+                    <i class="glyphicon glyphicon-cloud-download"></i>
+                    {% else %}{% if label == "Write" %}
+                    <i class="glyphicon glyphicon-cloud-upload"></i>
+                    {% else %}{{ label }}
+                    {% endif %}{% endif %}: {{ data }}/Sec <br />
                     {% empty %}
                         Cluster is idle.
                     {% endfor %}
@@ -282,8 +287,8 @@ CRIT
             });
         };
 
-        $('button').popover({trigger: 'hover', html: true, delay: {hide: 0}});
-        $('button').click(get_osd_data);
+        $('button[id=osd_data]').popover({trigger: 'hover', html: true, delay: {hide: 0}});
+        $('button[id=osd_data]').click(get_osd_data);
     });
 </script>
 {% endblock %}
