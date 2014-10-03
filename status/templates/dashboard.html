@@ -23,12 +23,15 @@ CRIT
                       <h1 class="text-success"><i class="glyphicon glyphicon-ok"></i></h1>
                     {% elif cluster_health.output.overall_status == "HEALTH_WARN" %}
                       <h1 class="text-warning"><i class="glyphicon glyphicon-warning-sign"></i></h1>
+                     {% for detail in cluster_health.output.detail %}
+                        <p class="text-warning">{{detail}}</p>
+                     {% endfor %}
                     {% else %}
                       <h1 class="text-danger"><i class="glyphicon glyphicon-fire"></i></h1>
+                      {% for detail in cluster_health.output.detail %}
+                        <p class="text-danger">{{detail}}</p>
+                      {% endfor %}
                     {% endif %}
-                    {% for detail in cluster_health.output.detail %}
-                    <p class="text-warning">{{detail}}</p>
-                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -82,8 +85,9 @@ CRIT
                     <div id="gauge-usage"></div>
                     <script>
                         var draw_usage = function() {
-                            var size = $("#gauge-usage").width(),
-                            R = size / 2.5,
+                            var size = $("#gauge-usage").width();
+                            size = (size < 200)? size: 200;
+                            var R = size / 2.5,
                             strength = size / 5,
                             center = size / 2,
                             param = {stroke: "#fff", "stroke-width": strength},
@@ -215,8 +219,9 @@ CRIT
                     <div id="gauge-{{ user }}"></div>
                     <script>
                         draw["{{user}}"] = function() {
-                            var size = $("#gauge-{{ user }}").width(),
-                            R = size / 2.5,
+                            var size = $("#gauge-usage").width();
+                            size = (size < 200)? size: 200;
+                            var R = size / 2.5,
                             strength = size / 10,
                             center = size / 2;
                             param = {stroke: "#fff", "stroke-width": strength},
