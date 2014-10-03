@@ -26,6 +26,9 @@ CRIT
                     {% else %}
                       <h1 class="text-danger"><i class="glyphicon glyphicon-fire"></i></h1>
                     {% endif %}
+                    {% for detail in cluster_health.output.detail %}
+                    <p class="text-warning">{{detail}}</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -240,9 +243,9 @@ CRIT
                                 };
                             {% for bucket, stat in data.items %}
                             {% if stat %}
-                                var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
-                                var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
-                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }}, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
+                                var bg = r.path().attr(param).attr({arc: [{{ data_avail }} / 3, {{ data_avail }} / 3, R, 1]});
+                                var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }} / 3, R]});
+                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }} / 3, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
                                 var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
                                 var hoverOut = function() {this.attr({"stroke-width": strength});}
                                 scale.hover(hoverIn, hoverOut, scale, scale);
