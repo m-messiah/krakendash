@@ -216,7 +216,7 @@ CRIT
                 {% for user, data in users_stat.items %}
                  <div class="col-sm-3">
                     <div>{{ user }}</div>
-                    <div id="gauge-{{ user }}"></div>
+                    <div id="gauge-{{ user }}" data-container="body" data-toggle="popover" data-placement="top" data-content=""></div>
                     <script>
                         draw["{{user}}"] = function() {
                             var size = $("#gauge-usage").width();
@@ -251,8 +251,9 @@ CRIT
                                 var bg = r.path().attr(param).attr({arc: [{{ data_avail }} / 3, {{ data_avail }} / 3, R, 1]});
                                 var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }} / 3, R]});
                                 scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }} / 3, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
-                                var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
-                                var hoverOut = function() {this.attr({"stroke-width": strength});}
+                                var hoverIn = function() {this.attr({"stroke-width": strength + 3}); $('#gauge-{{user}}').popover({content: "{{ bucket }}: {{stat.size_kb|mul:1024|filesizeformat}}"}); $('#gauge-{{user}}').popover('show')};
+
+                                var hoverOut = function() {this.attr({"stroke-width": strength});$('#gauge-{{user}}').popover('hide')}
                                 scale.hover(hoverIn, hoverOut, scale, scale);
                                 R -= size / 15 + 10;
                             {% endif %}
@@ -265,7 +266,7 @@ CRIT
                         <ul class="list-unstyled">
                         {% for bucket, stat in data.items %}
                             <li>
-                                {% if stat %}<span class="badge pull-right">{{stat.size_kb|mul:1024|filesizeformat}} </span>{% endif %}
+                                {% if stat %}<span class="badge pull-right">{{stat.num_objects}}  <i class="glyphicon glyphicon-file"></i> </span>{% endif %}
                                 <p class="text-left {% if not stat %}text-muted{% endif %}" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}</p>
                             </li>
                         {% endfor %}
