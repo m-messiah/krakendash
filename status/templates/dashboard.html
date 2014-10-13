@@ -251,7 +251,7 @@ CRIT
                                 var bg = r.path().attr(param).attr({arc: [{{ data_avail }} / 3, {{ data_avail }} / 3, R, 1]});
                                 var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }} / 3, R]});
                                 scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }} / 3, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
-                                var hoverIn = function() {this.attr({"stroke-width": strength + 3}); $('#gauge-{{user}}').popover({content: "{{ bucket }}: {{stat.size_kb|mul:1024|filesizeformat}}"}); $('#gauge-{{user}}').popover('show')};
+                                var hoverIn = function() {this.attr({"stroke-width": strength + 3}); $('#gauge-{{user}}').popover({content: "{{ bucket }}: {{stat.size_kb|mul:1024|filesizeformat}} ({{stat.size_kb_actual|mul:1024|filesizeformat}})"}); $('#gauge-{{user}}').popover('show')};
 
                                 var hoverOut = function() {this.attr({"stroke-width": strength});$('#gauge-{{user}}').popover('hide')}
                                 scale.hover(hoverIn, hoverOut, scale, scale);
