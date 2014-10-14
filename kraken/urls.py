@@ -13,6 +13,7 @@ base_urlpatterns = patterns(
     url(r'^$', 'status.views.home', name='home'),
     url(r'^ops/$', 'ops.views.ops', name='ops'),
     url(r'^osd/(\d+)/$', 'status.views.osd_details', name='osd_details'),
+    url(r'^activity/$', 'status.views.activity', name='activity'),
     url(r'^user/(.+?)(/.+?)?(/.+?)?/$', 'ops.views.user_custom',
         name='user_custom'),
     url(r'^api/clusters/health/$', views.health, name="cluster-health"),

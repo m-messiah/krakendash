@@ -192,16 +192,119 @@ CRIT
                     <h3 class="panel-title">Activity</h3>
                 </div>
                 <div class="panel-body">
+                    <p>
+                        <i class="glyphicon glyphicon-cloud-download text-info"></i> <span id="read-data">{{ activities.Read|filesizeformat }}</span>/s
+                        <i class="glyphicon glyphicon-cloud-upload text-danger"></i> <span id="write-data">{{ activities.Write|filesizeformat }}</span>/s
+                    </p>
                     {% for label, data in activities.items %}
-                    {% if label == "Read" %}
-                    <i class="glyphicon glyphicon-cloud-download"></i>
-                    {% else %}{% if label == "Write" %}
-                    <i class="glyphicon glyphicon-cloud-upload"></i>
-                    {% else %}{{ label }}
-                    {% endif %}{% endif %}: {{ data }}/Sec <br />
-                    {% empty %}
-                        Cluster is idle.
+                    {% if not label == "Read" and not label == "Write" %}
+                    {{ label }}: {{ data }}/Sec <br />
+                    {% endif %}
                     {% endfor %}
+                    <div id="activity"></div>
+                    <script>
+                        function filesizeformat(fileSizeInBytes) {
+                            var i = -1;
+                            var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+                            do {
+                                fileSizeInBytes = fileSizeInBytes / 1024;
+                                i++;
+                            } while (fileSizeInBytes > 1024);
+                            return Math.max(fileSizeInBytes, 0).toFixed(1) + byteUnits[i];
+                        };         
+                        Raphael(function () {
+                            var size = $("#activity").width();
+                            size = (size < 200)? size: 200;
+                            var r = Raphael("activity", size, size),
+                            maxspeed = 50000000,
+                            clr = [],
+                            x = 0,
+                            e = [],
+                            values = [],
+                            c = [],
+                            start = [],
+                            bg = [],
+                            dotsy = [];
+                            c["read"] = r.path("M0,250").attr({fill: "none", "stroke-width": 1, "stroke-linecap": "round"});
+                            c["write"] = r.path("M0,250").attr({fill: "none", "stroke-width": 1, "stroke-linecap": "round"});
+                            bg["read"] = r.path("M0,250").attr({stroke: "none", opacity: .3});
+                            bg["write"] = r.path("M0,250").attr({stroke: "none", opacity: .3});
+                            start["read"] = [0, size];
+                            start["write"] = [0, size];
+                            values["read"] = [];
+                            values["write"] = [];
+                function newPath(x) {
+                    var path = [],
+                        y = 0;
+                    dotsy["read"] = 0;
+                    dotsy["write"] = 0;
+                    $.ajax({
+                        type: 'GET',
+                        async: false,
+                        url: "/krakendash/activity/",
+                        dataType: 'json',
+                        success: function(data){
+                            dotsy["read"] = data["Read"] == undefined? 0 : data["Read"];
+                            dotsy["write"] = data["Write"] == undefined? 0 : data["Write"];
+                            $("#read-data").html(filesizeformat(dotsy["read"]));
+                            $("#write-data").html(filesizeformat(dotsy["write"]));
+                            /*while (dotsy["read"] > size) {
+                                dotsy["read"] /= 2;
+                                dotsy["write"] /= 2;
+                            }
+                            while (dotsy["write"] > size) {
+                                dotsy["read"] /= 2;
+                                dotsy["write"] /= 2;
+                            }*/
+                            dotsy["read"] = dotsy["read"] * size / maxspeed;
+                            dotsy["write"] = dotsy["write"] * size / maxspeed;
+                            dotsy["read"] = size - dotsy["read"];
+                            dotsy["write"] = size - dotsy["write"];
+                        }
+                    });
+                    path["read"] = [x, (y = dotsy["read"])];
+                    path["write"] = [x, (y = dotsy["write"])];
+                    return path;
+                }
+                clr["read"] = "#31708f";
+                clr["write"] = "#a94442";
+                c["read"].attr({path: "M0," + size + "L", stroke: clr["read"]});
+                c["write"].attr({path: "M0," + size + "L", stroke: clr["write"]});
+                bg["read"].attr({path: "M0," + size + "L" + size + "," + size + " 0," + size + "z", fill: clr["read"]});
+                bg["write"].attr({path: "M0," + size + "L" + size + "," + size + " 0," + size + "z", fill: clr["write"]});
+                var animation = function (values, x) {
+                    var time = 500;
+                    if (x < 200) {x += 10;}
+                    var values_new = newPath(x);
+                    values["read"].push(values_new["read"]);
+                    values["write"].push(values_new["write"]);
+                    var anim1 = Raphael.animation({path: "M" + start["read"] + "L" + values["read"].join(","), stroke: clr["read"]}, time, "<>");
+                    var anim2 = Raphael.animation({path: "M" + start["write"] + "L" + values["write"].join(","), stroke: clr["write"]}, time, "<>");
+                    bg["read"].animateWith(c, anim1, {path: "M" + start["read"] + "L" + values["read"].join(",") + "L" + values_new["read"][0] + "," + size + " L0," + size + "z", fill: clr["read"]}, time, "<>");
+                    bg["write"].animateWith(c, anim2, {path: "M" + start["write"] + "L" + values["write"].join(",") + "L" + values_new["write"][0] + "," + size + " L0," + size + "z", fill: clr["write"]}, time, "<>");
+                    c["read"].animate(anim1);
+                    c["write"].animate(anim2);
+                    if (values["write"][0][0] > 20) {
+                            console.error(x, values_new["write"], values["write"]);
+                            return 0;
+                        }
+                    if (values["read"].length > 20 || values["write"].length > 20) {
+                        values["read"].shift();
+                        values["write"].shift();
+                        for (var i = 0; i < values["read"].length; i++){
+                            values["read"][i][0] -= 10;
+                        }
+                        for (var i = 0; i < values["write"].length; i++){
+                            values["write"][i][0] -= 10;
+                        }
+                        start["read"][1] = values["read"][0][1];
+                        start["write"][1] = values["write"][0][1];
+                    }
+                    setTimeout(function(){animation(values, x);}, 1000);
+                };
+                animation(values, x);
+            });
+                    </script>
                 </div>
             </div>
         </div>

@@ -33,9 +33,11 @@
 
 import re
 
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.conf import settings
 from cephclient import wrapper
+import json
 import requests
 from humanize import filesize
 from rgwadmin import RGWAdmin
@@ -200,3 +202,25 @@ def osd_details(request, osd_num):
                            osd_perf['output']['osd_perf_infos'])[0]
 
     return render_to_response('osd_details.html', locals())
+
+def activity(request):
+    ceph = wrapper.CephWrapper(endpoint=settings.CEPH_BASE_URL)
+
+    sresp, cluster_status = ceph.status(body='json')
+    pgmap = cluster_status['output']['pgmap']
+    activities = {}
+    if 'read_bytes_sec' in pgmap:
+        activities['Read'] = pgmap.get('read_bytes_sec')
+    if 'write_bytes_sec' in pgmap:
+        activities['Write'] = pgmap.get('write_bytes_sec')
+    if 'op_per_sec' in pgmap:
+        activities['Ops'] = pgmap.get('op_per_sec')
+    if 'recovering_objects_per_sec' in pgmap:
+        activities['Recovering Objects'] = pgmap.get(
+            'recovering_objects_per_sec')
+    if 'recovering_bytes_per_sec' in pgmap:
+        activities['Recovery Speed'] = pgmap.get('recovering_bytes_per_sec')
+    if 'recovering_keys_per_sec' in pgmap:
+        activities['Recovering Keys'] = pgmap.get('recovering_keys_per_sec')
+    return HttpResponse(json.dumps(activities),
+                        content_type='application/json')
