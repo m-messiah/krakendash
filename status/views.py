@@ -40,7 +40,7 @@ from cephclient import wrapper
 import json
 import requests
 from humanize import filesize
-from rgwadmin import RGWAdmin
+from rgwadmin import RGWAdmin, exceptions
 
 rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
                     settings.S3_SERVER, secure=False)
@@ -162,29 +162,33 @@ def home(request):
             osds_crit += 1
 
     # Users and stats
-    buckets_list = rgwAdmin.get_bucket()
     users_stat = {}
-    for bucket in buckets_list:
-        try:
-            bucket_stat = rgwAdmin.get_bucket(bucket)
-            if bucket_stat["owner"] in users_stat:
-                if "rgw.main" in bucket_stat["usage"]:
-                    users_stat[
-                        bucket_stat["owner"]
-                    ][bucket] = bucket_stat["usage"]["rgw.main"]
+    try:
+        buckets_list = rgwAdmin.get_bucket()
+    except exceptions.ServerDown:
+        pass
+    else:
+        for bucket in buckets_list:
+            try:
+                bucket_stat = rgwAdmin.get_bucket(bucket)
+                if bucket_stat["owner"] in users_stat:
+                    if "rgw.main" in bucket_stat["usage"]:
+                        users_stat[
+                            bucket_stat["owner"]
+                        ][bucket] = bucket_stat["usage"]["rgw.main"]
+                    else:
+                        users_stat[
+                            bucket_stat["owner"]
+                        ][bucket] = {}
                 else:
-                    users_stat[
-                        bucket_stat["owner"]
-                    ][bucket] = {}
-            else:
-                if "rgw.main" in bucket_stat["usage"]:
-                    users_stat[bucket_stat["owner"]] = {
-                        bucket: bucket_stat["usage"]["rgw.main"]}
-                else:
-                    users_stat[bucket_stat["owner"]] = {
-                        bucket: {}}
-        except:
-            pass
+                    if "rgw.main" in bucket_stat["usage"]:
+                        users_stat[bucket_stat["owner"]] = {
+                            bucket: bucket_stat["usage"]["rgw.main"]}
+                    else:
+                        users_stat[bucket_stat["owner"]] = {
+                            bucket: {}}
+            except:
+                pass
     return render_to_response('dashboard.html', locals())
 
 
