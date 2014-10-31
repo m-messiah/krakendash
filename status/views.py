@@ -42,9 +42,6 @@ import requests
 from humanize import filesize
 from rgwadmin import RGWAdmin, exceptions
 
-rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
-                    settings.S3_SERVER, secure=False)
-
 
 def req(url):
     """
@@ -162,12 +159,40 @@ def home(request):
             osds_crit += 1
 
     # Users and stats
+    s3_servers = list(settings.S3_SERVERS)
+    users_stat = get_users_stat(s3_servers)
+    
+    # RGW statuses
+    radosgw_state = dict()
+    rgw_ok = 0
+    rgw_off = 0
+    for server in settings.S3_SERVERS:
+        stat = get_rgw_stat(server)
+        radosgw_state[server] = stat
+        if stat:
+            rgw_ok += 1
+        else:
+            rgw_off += 1
+    radosgw_state = tuple(((server, radosgw_state[server])
+                     for server in sorted(radosgw_state)))
+    return render_to_response('dashboard.html', locals())
+
+
+def get_rgw_stat(server):
+    try:
+        rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
+                            server, secure=False)
+        rgwAdmin.get_users()
+        return 1
+    except:
+        return 0
+
+def get_users_stat(s3_servers):
     users_stat = {}
     try:
+        rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
+                            s3_servers.pop(0), secure=False) 
         buckets_list = rgwAdmin.get_bucket()
-    except exceptions.ServerDown:
-        pass
-    else:
         for bucket in buckets_list:
             try:
                 bucket_stat = rgwAdmin.get_bucket(bucket)
@@ -189,7 +214,11 @@ def home(request):
                             bucket: {}}
             except:
                 pass
-    return render_to_response('dashboard.html', locals())
+        return users_stat
+    except IndexError:
+        return users_stat
+    except exceptions.ServerDown:
+        return get_users_stat(s3_servers)
 
 
 def osd_details(request, osd_num):

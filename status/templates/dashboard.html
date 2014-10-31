@@ -70,6 +70,12 @@ CRIT
                                 <td>{{ pg_warn }}</td>
                                 <td>{{ pg_crit }}</td>
                             </tr>
+                            <tr>
+                                <td><b>RGW</b></td>
+                                <td>{{ rgw_ok }}</td>
+                                <td>0</td>
+                                <td>{{ rgw_off }}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -166,7 +172,7 @@ CRIT
             </div>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-sm-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title" id="osdNotice">OSD Status</h3>
@@ -185,6 +191,28 @@ CRIT
                 </div>
             </div>
         </div>
+
+
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title" id="osdNotice">RGW Status</h3>
+                </div>
+                <div class="panel-body" align="left">
+                    <style>p.rgw_button { line-height: 300%; }</style>
+                    <p class="rgw_button">
+                        {% for rgw, status in radosgw_state %}
+                            {% if status == 1 %}
+                                <button type="button" class="btn btn-xs btn-success">{{ rgw }}</button>
+                            {% else %}
+                                <button type="button" class="btn btn-xs btn-danger">{{ rgw }}</button>
+                            {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
 
         <div class="col-sm-3">
             <div class="panel panel-default">
@@ -366,7 +394,7 @@ CRIT
 
                     </script>
                     <div>
-                        <ul class="list-unstyled">
+                        <ul class="lst-unstyled">
                         {% for bucket, stat in data.items %}
                             <li>
                                 {% if stat %}<span class="badge pull-right">{{stat.num_objects}}  <i class="glyphicon glyphicon-file"></i> </span>{% endif %}
