@@ -44,21 +44,27 @@ Service zone
         var add_key = function () {
             var el = $(this);
             var send_url = "/krakendash/user/" + el.attr('username') + "/addkey/";
-            $.ajax({
-                type: 'GET',
-                url: send_url,
-                dataType: 'json',
-                success: function (data) {
-                    el.attr('data-title', data.access_key);
-                    el.attr('data-original-title', data.access_key);
-                    el.attr('data-content', data.secret_key);
-                    el.popover("show");
-                    $("#" + data.user + "-keys").append("<span>" + data.access_key + "</span>\n");
-                    $("#customize-" + data.user).on('hidden.bs.modal', function () {el.popover("hide"); });
-                }
-            });
+            if (el.data()['bs.popover'] && el.data()['bs.popover'].tip().hasClass('in')) {
+                el.popover('destroy');
+                el.html("Add key");
+            } else {
+                $.ajax({
+                    type: 'GET',
+                    url: send_url,
+                    dataType: 'json',
+                    success: function (data) {
+                        el.attr('data-title', data.access_key);
+                        el.attr('data-original-title', data.access_key);
+                        el.attr('data-content', data.secret_key);
+                        el.popover("show");
+                        $("#" + data.user + "-keys").append("<span>" + data.access_key + "</span>\n");
+                        $("#customize-" + data.user).on('hidden.bs.modal', function () {el.popover("hide"); });
+                        el.html("DON'T CLICK THIS BUTTON UNTIL SAVE SECRET KEY");
+                    }
+                });
+            }
         };
-        $('button[username]').mousedown(add_key);
+        $('button[username]').click(add_key);
 
         $("#createUser").submit(function(e) {
             $.ajax({
