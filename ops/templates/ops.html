@@ -66,6 +66,33 @@ Service zone
         };
         $('button[username]').click(add_key);
 
+        var subuser_create = function () {
+            var el = $(this);
+            var name = $("#" + el.attr('subuser') + "-subuser").val();
+            var send_url = "/krakendash/user/" + el.attr('subuser') + "/subuser/";
+            if (el.data()['bs.popover'] && el.data()['bs.popover'].tip().hasClass('in')) {
+                el.popover('destroy');
+                el.html("Create");
+            } else {
+                $.ajax({
+                    type: 'GET',
+                    url: send_url,
+                    dataType: 'json',
+                    data: {'subuser_name':name},
+                    success: function (data) {
+                        el.attr('data-title', data.user);
+                        el.attr('data-original-title', data.user);
+                        el.attr('data-content', data.secret_key);
+                        el.popover("show");
+                        $("#" + data.user.split(":", 1)[0] + "-keys").append("<span>" + data.user + "</span>\n");
+                        $("#customize-" + data.user.split(":", 1)[0]).on('hidden.bs.modal', function () {el.popover("hide"); });
+                        el.html("DON'T CLICK UNTIL SAVE KEY");
+                    }
+                });
+            }
+        };
+        $('button[subuser]').click(subuser_create);
+
         $("#createUser").submit(function(e) {
             $.ajax({
                 type: $(this).attr("method"),

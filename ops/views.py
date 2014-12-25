@@ -98,6 +98,26 @@ def user_custom(request, user, func, argument):
         return HttpResponse(json.dumps(newkey),
                             content_type='application/json')
 
+    elif func == "subuser":
+        user_info = get_user_info(user)
+        subuser = param(request, "subuser_name")
+        if user in subuser:
+            if subuser not in [u["id"] for u in user_info["subusers"]]:
+                res = rgwAdmin.create_subuser(
+                    user, subuser=subuser, key_type='swift', access='full',
+                    generate_secret=True)
+                user_info = get_user_info(user)
+                for key in user_info["swift_keys"]:
+                    if key["user"] == subuser:
+                            return HttpResponse(json.dumps(key),
+                                                content_type='application/json')
+            else:
+                error = "User exists"
+        else:
+            error = "Swift must be \"" + user + ":[a-z0-9]\""
+        return HttpResponse(json.dumps({"user": "Error", "secret_key": error}),
+                            content_type='application/json')
+
     elif func == "customize":
         try:
             p_name, p_email, p_maxbuckets, p_subuser = None, None, None, None
@@ -148,16 +168,6 @@ def user_custom(request, user, func, argument):
             res = rgwAdmin.set_quota(
                 user, "bucket", p_maxsizekb, p_maxobjects,
                 enabled=(maxbuckobjects > -1 or maxbucksizekb > -1))
-
-            # Create subuser
-            if (user in subuser) and (subuser not in user_info["subusers"]):
-                res = rgwAdmin.create_subuser(
-                    user, subuser=subuser, key_type='swift', access='full',
-                    generate_secret=True)
-                for key in res["swift_keys"]:
-                    if key["user"] == subuser:
-                        return HttpResponse(json.dumps(key),
-                                            content_type='application/json')
 
         except Exception as e:
             error = e
