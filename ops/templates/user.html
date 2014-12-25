@@ -18,12 +18,7 @@
                 </dd>
                 <dt>Swift</dt><dd id="{{username}}-swift">
                     {% for key in stats.swift_keys %}
-                    <span>{{ key.user }}</span>
-                        {% for subuser in stats.subusers %}
-                        {% if subuser.id == key.user %}<em>&nbsp;&nbsp;&nbsp;&middot;&middot;&middot;   {{subuser.permissions}}</em>{% endif %}
-                        {% endfor %}
-                    <br>
-                    {% if new %}<strong>Secret: </strong><span>{{key.secret_key}}</span><br>{% endif %}
+                    <span>{{ key.user }}</span><br>{% if new %}<strong>Secret: </strong><span>{{key.secret_key}}</span><br>{% endif %}
                     {% endfor %}
                 </dd>
                 {% if stats.user_quota.enabled %}

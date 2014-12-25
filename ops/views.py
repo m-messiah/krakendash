@@ -100,12 +100,13 @@ def user_custom(request, user, func, argument):
 
     elif func == "customize":
         try:
-            p_name, p_email, p_maxbuckets = None, None, None
+            p_name, p_email, p_maxbuckets, p_subuser = None, None, None, None
             p_maxobjects, p_maxsizekb = None, None
             user_info = get_user_info(user)
             suspended = user_info["suspended"]
             email = param(request, 'email')
             name = param(request, 'name')
+            subuser = param(request, "subuser")
             maxbuckets = int(param(request, 'maxbuckets'))
             maxobjects = int(param(request, 'maxobjects'))
             maxsizekb = int(param(request, 'maxsizekb'))
@@ -147,6 +148,16 @@ def user_custom(request, user, func, argument):
             res = rgwAdmin.set_quota(
                 user, "bucket", p_maxsizekb, p_maxobjects,
                 enabled=(maxbuckobjects > -1 or maxbucksizekb > -1))
+
+            # Create subuser
+            if (user in subuser) and (subuser not in user_info["subusers"]):
+                res = rgwAdmin.create_subuser(
+                    user, subuser=subuser, key_type='swift', access='full',
+                    generate_secret=True)
+                for key in res["swift_keys"]:
+                    if key["user"] == subuser:
+                        return HttpResponse(json.dumps(key),
+                                            content_type='application/json')
 
         except Exception as e:
             error = e
