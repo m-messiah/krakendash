@@ -84,7 +84,8 @@ Service zone
                         el.attr('data-original-title', data.user);
                         el.attr('data-content', data.secret_key);
                         el.popover("show");
-                        $("#" + data.user.split(":", 1)[0] + "-keys").append("<span>" + data.user + "</span>\n");
+                        console.log(data.user.split(":", 1)[0]);
+                        $("#" + data.user.split(":", 1)[0] + "-swift").append("<span>" + data.user + "</span>\n");
                         $("#customize-" + data.user.split(":", 1)[0]).on('hidden.bs.modal', function () {el.popover("hide"); });
                         el.html("DON'T CLICK UNTIL SAVE KEY");
                     }
