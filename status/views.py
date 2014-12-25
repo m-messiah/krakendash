@@ -182,8 +182,10 @@ def get_rgw_stat(server):
     try:
         rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
                             server, secure=False)
-        rgwAdmin.get_users()
-        return 1
+        if rgwAdmin.get_users():
+            return 1
+        else:
+            return 0
     except:
         return 0
 

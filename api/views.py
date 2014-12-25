@@ -124,7 +124,7 @@ def overview(request, format=None):
                                 Counter(map(lambda x: health_lookup[x['health']].lower(), mons_status)).items())
                     ,
                     'pgs': dict(({'ok':0,'warn':0,'crit':0}).items() + 
-                            reduce(lambda y,z: y.update(z),
+                            reduce(lambda y,z: y.update(z) if y else {},
                                 map(lambda x: {pg_health_lookup(x['state_name']).lower(): x['count']}, pg_status)).items())
                     ,
                     'osds': dict(({'ok':0,'warn':0,'crit':mon_count-len(mons_status)}).items() +
