@@ -251,11 +251,11 @@ def activity(request):
     if 'op_per_sec' in pgmap:
         activities['Ops'] = pgmap.get('op_per_sec')
     if 'recovering_objects_per_sec' in pgmap:
-        activities['Recovering Objects'] = pgmap.get(
+        activities['Recovering_Objects'] = pgmap.get(
             'recovering_objects_per_sec')
     if 'recovering_bytes_per_sec' in pgmap:
-        activities['Recovery Speed'] = pgmap.get('recovering_bytes_per_sec')
+        activities['Recovery_Speed'] = pgmap.get('recovering_bytes_per_sec')
     if 'recovering_keys_per_sec' in pgmap:
-        activities['Recovering Keys'] = pgmap.get('recovering_keys_per_sec')
+        activities['Recovering_Keys'] = pgmap.get('recovering_keys_per_sec')
     return HttpResponse(json.dumps(activities),
                         content_type='application/json')
