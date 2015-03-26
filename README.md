@@ -1,10 +1,18 @@
-# kraken
+# kraken + S3
 
 A free Ceph dashboard for stats and monitoring
 
 You can see what the latest version looks like [here](http://imgur.com/fDnqpO9)
 
 Come hang out with us on freenode in #kraken-dashboard
+
+## Overview
+
+![Status dashboard](/screenshots/status.png?raw=true "Status")
+
+![User panel](/screenshots/users.png?raw=true "Users")
+
+![User mod](/screenshots/user_mod.png?raw=true "User mod")
 
 ## Installation and Roadmap
 
