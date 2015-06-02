@@ -143,32 +143,14 @@ CRIT
                 <div class="panel-heading">
                     <h3 class="panel-title">PG States</h3>
                 </div>
-                <div class="panel-body">
-                    <!--
-                    <div class="table-responsive">
-                      <table class="table table-curved">
-                        <tr>
-                          <td>state</td>
-                          <td>count</td>
-                        </tr>
-                      {% for k, v in pg_states.items %}
-                        <tr>
-                          <td>{{ k }}</td>
-                          <td>{{ v }}</td>
-                        </tr>
-                      {% endfor %}
-                      </table>
-                    </div>
-                    -->
-                    <ul class="list-group">
-                        {% for k, v in pg_states.items %}
-                            <li class="list-group-item">
-                                <span class="badge">{{ v }}</span>
-                                {{ k }}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                <ul class="list-group">
+                    {% for k, v in pg_states.items %}
+                        <li class="list-group-item">
+                            {{ k }}
+                            <span class="label label-default">{{ v }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
@@ -178,16 +160,17 @@ CRIT
                     <h3 class="panel-title" id="osdNotice">OSD Status</h3>
                 </div>
                 <div class="panel-body" align="left">
-                    <style>p.osd_button { line-height: 300%; }</style>
-                    <p class="osd_button">
+                    <div class="btn-group btn-group-justified" role="group">
                         {% for osd in osd_state %}
+                            <div class="btn-group btn-group-xs" role="group">
                             {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
-                                <button id="osd_data" type="button" class="btn btn-xs btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                <button id="osd_data" type="button" class="btn btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
                             {% else %}
-                                <button id="osd_data" type="button" class="btn btn-xs btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                <button id="osd_data" type="button" class="btn btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
                             {% endif %}
+                            </div>
                         {% endfor %}
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -199,151 +182,27 @@ CRIT
                     <h3 class="panel-title" id="osdNotice">RGW Status</h3>
                 </div>
                 <div class="panel-body" align="left">
-                    <style>p.rgw_button { line-height: 300%; }</style>
-                    <p class="rgw_button">
+                    <div class="btn-group btn-group-justified" role="group">
                         {% for rgw, status in radosgw_state %}
+                            <div class="btn-group btn-group-xs" role="group">
                             {% if status == 1 %}
-                                <button type="button" class="btn btn-xs btn-success">{{ rgw }}</button>
+                                <button type="button" class="btn btn-success">{{ rgw }}</button>
                             {% else %}
-                                <button type="button" class="btn btn-xs btn-danger">{{ rgw }}</button>
+                                <button type="button" class="btn btn-danger">{{ rgw }}</button>
                             {% endif %}
+                            </div>
                         {% endfor %}
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>
-
-        {% comment %}
-        <div class="col-sm-3">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Activity</h3>
-                </div>
-                <div class="panel-body">
-                    <p>
-                        <i class="glyphicon glyphicon-cloud-download text-info"></i> <span id="read-data">{{ activities.Read|filesizeformat }}</span>/s
-                        <i class="glyphicon glyphicon-cloud-upload text-danger"></i> <span id="write-data">{{ activities.Write|filesizeformat }}</span>/s
-                    </p>
-                    {% for label, data in activities.items %}
-                    {% if not label == "Read" and not label == "Write" %}
-                    {{ label }}: {{ data }}/Sec <br />
-                    {% endif %}
-                    {% endfor %}
-                    <div id="activity"></div>
-                    <script>
-                        function filesizeformat(fileSizeInBytes) {
-                            var i = -1;
-                            var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
-                            do {
-                                fileSizeInBytes = fileSizeInBytes / 1024;
-                                i++;
-                            } while (fileSizeInBytes > 1024);
-                            return Math.max(fileSizeInBytes, 0).toFixed(1) + byteUnits[i];
-                        };         
-                        Raphael(function () {
-                            var size = $("#activity").width();
-                            size = (size < 200)? size: 200;
-                            var r = Raphael("activity", size, size),
-                            maxspeed = 10000000,
-                            clr = [],
-                            x = 0,
-                            e = [],
-                            values = [],
-                            c = [],
-                            start = [],
-                            bg = [],
-                            dotsy = [];
-                            c["read"] = r.path("M0,250").attr({fill: "none", "stroke-width": 1, "stroke-linecap": "round"});
-                            c["write"] = r.path("M0,250").attr({fill: "none", "stroke-width": 1, "stroke-linecap": "round"});
-                            bg["read"] = r.path("M0,250").attr({stroke: "none", opacity: .3});
-                            bg["write"] = r.path("M0,250").attr({stroke: "none", opacity: .3});
-                            start["read"] = [0, size];
-                            start["write"] = [0, size];
-                            values["read"] = [];
-                            values["write"] = [];
-                function newPath(x) {
-                    var path = [],
-                        y = 0;
-                    dotsy["read"] = 0;
-                    dotsy["write"] = 0;
-                    $.ajax({
-                        type: 'GET',
-                        async: false,
-                        url: "/krakendash/activity/",
-                        dataType: 'json',
-                        success: function(data){
-                            dotsy["read"] = data["Read"] == undefined? 0 : data["Read"];
-                            dotsy["write"] = data["Write"] == undefined? 0 : data["Write"];
-                            $("#read-data").html(filesizeformat(dotsy["read"]));
-                            $("#write-data").html(filesizeformat(dotsy["write"]));
-                            /*while (dotsy["read"] > size) {
-                                dotsy["read"] /= 2;
-                                dotsy["write"] /= 2;
-                            }
-                            while (dotsy["write"] > size) {
-                                dotsy["read"] /= 2;
-                                dotsy["write"] /= 2;
-                            }*/
-                            dotsy["read"] = dotsy["read"] * size / maxspeed;
-                            dotsy["write"] = dotsy["write"] * size / maxspeed;
-                            dotsy["read"] = size - dotsy["read"];
-                            dotsy["write"] = size - dotsy["write"];
-                        }
-                    });
-                    path["read"] = [x, (y = dotsy["read"])];
-                    path["write"] = [x, (y = dotsy["write"])];
-                    return path;
-                }
-                clr["read"] = "#31708f";
-                clr["write"] = "#a94442";
-                c["read"].attr({path: "M0," + size + "L", stroke: clr["read"]});
-                c["write"].attr({path: "M0," + size + "L", stroke: clr["write"]});
-                bg["read"].attr({path: "M0," + size + "L" + size + "," + size + " 0," + size + "z", fill: clr["read"]});
-                bg["write"].attr({path: "M0," + size + "L" + size + "," + size + " 0," + size + "z", fill: clr["write"]});
-                var animation = function (values, x) {
-                    var time = 1000;
-                    if (x < 200) {x += 10;}
-                    var values_new = newPath(x);
-                    values["read"].push(values_new["read"]);
-                    values["write"].push(values_new["write"]);
-                    var anim1 = Raphael.animation({path: "M" + start["read"] + "L" + values["read"].join(","), stroke: clr["read"]}, time, "<>");
-                    var anim2 = Raphael.animation({path: "M" + start["write"] + "L" + values["write"].join(","), stroke: clr["write"]}, time, "<>");
-                    bg["read"].animateWith(c, anim1, {path: "M" + start["read"] + "L" + values["read"].join(",") + "L" + values_new["read"][0] + "," + size + " L0," + size + "z", fill: clr["read"]}, time, "<>");
-                    bg["write"].animateWith(c, anim2, {path: "M" + start["write"] + "L" + values["write"].join(",") + "L" + values_new["write"][0] + "," + size + " L0," + size + "z", fill: clr["write"]}, time, "<>");
-                    c["read"].animate(anim1);
-                    c["write"].animate(anim2);
-                    if (values["write"][0][0] > 20) {
-                            console.error(x, values_new["write"], values["write"]);
-                            return 0;
-                        }
-                    if (values["read"].length > 20 || values["write"].length > 20) {
-                        values["read"].shift();
-                        values["write"].shift();
-                        for (var i = 0; i < values["read"].length; i++){
-                            values["read"][i][0] -= 10;
-                        }
-                        for (var i = 0; i < values["write"].length; i++){
-                            values["write"][i][0] -= 10;
-                        }
-                        start["read"][1] = values["read"][0][1];
-                        start["write"][1] = values["write"][0][1];
-                    }
-                    setTimeout(function(){animation(values, x);}, 15000);
-                };
-                animation(values, x);
-            });
-                    </script>
-                </div>
-            </div>
-        </div>
-        {% endcomment %}
     </div>
     <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">S3 users</h3>
         </div>
         <div class="panel-body">
-            <div class="row"><script>var draw = new Array();</script>
+           <div class="row"><script>var draw = new Array();</script>
                 {% for user, data in users_stat.items %}
                  <div class="col-sm-3">
                     <div>{{ user }}</div>
@@ -379,13 +238,14 @@ CRIT
                                 };
                             {% for bucket, stat in data.items %}
                             {% if stat %}
-                                var bg = r.path().attr(param).attr({arc: [{{ data_avail }} / 3, {{ data_avail }} / 3, R, 1]});
-                                var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }} / 3, R]});
-                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), {{ data_avail }} / 3, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
+                                var bg = r.path().attr(param).attr({arc: [1024, 1024, R, 1]});
+                                var scale = r.path().attr(param).attr({arc: [1, 1024, R]});
+                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), 1024, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
                                 var hoverIn = function() {this.attr({"stroke-width": strength + 3}); $('#gauge-{{user}}').popover({content: "{{ bucket }}: {{stat.size_kb|mul:1024|filesizeformat}} ({{stat.size_kb_actual|mul:1024|filesizeformat}})"}); $('#gauge-{{user}}').popover('show')};
 
-                                var hoverOut = function() {this.attr({"stroke-width": strength});$('#gauge-{{user}}').popover('hide')}
+                                var hoverOut = function() {this.attr({"stroke-width": strength});$('#gauge-{{user}}').popover('destroy')}
                                 scale.hover(hoverIn, hoverOut, scale, scale);
+                                bg.hover(hoverIn, hoverOut, scale, scale);
                                 R -= size / 15 + 10;
                             {% endif %}
                             {% endfor %}
@@ -394,11 +254,12 @@ CRIT
 
                     </script>
                     <div>
-                        <ul class="lst-unstyled">
+                        <ul class="list-unstyled">
                         {% for bucket, stat in data.items %}
                             <li>
-                                {% if stat %}<span class="badge pull-right">{{stat.num_objects}}  <i class="glyphicon glyphicon-file"></i> </span>{% endif %}
-                                <p class="text-left {% if not stat %}text-muted{% endif %}" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}</p>
+                                <p class="text-left {% if not stat %}text-muted{% endif %}" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}
+                                {% if stat %}<span class="label label-default pull-right">{{stat.num_objects}}  <i class="glyphicon glyphicon-file"></i> </span>{% endif %}
+                                </p>
                             </li>
                         {% endfor %}
                         </ul>
