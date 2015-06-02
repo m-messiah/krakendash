@@ -231,6 +231,10 @@ def osd_details(request, osd_num):
     osd_disk_details = filter(
         lambda x: x['osd'] == int(osd_num), osd_dump['output']['osds']
     )[0]
+    import socket
+    osd_disk_details["name"] = socket.gethostbyaddr(
+        osd_disk_details["public_addr"].split(":")[0]
+    )[0].split(".")[0]
 
     response, osd_perf = ceph.osd_perf(body='json')
     osd_disk_perf = filter(lambda x: x['id'] == int(osd_num),
