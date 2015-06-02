@@ -99,5 +99,6 @@ S3_SERVERS = [
     'ceph2',
     'ceph3',
 ]
-S3_ACCESS = ""
-S3_SECRET = ""
+S3_ACCESS = "PPAN5A62ELWE3778WH5U"
+S3_SECRET = "IG7TBzevg/HxXjbHu71QQ1wiWvAZkxBa23qbyKpi"
+
