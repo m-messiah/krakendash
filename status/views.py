@@ -261,5 +261,13 @@ def activity(request):
         activities['Recovery_Speed'] = pgmap.get('recovering_bytes_per_sec')
     if 'recovering_keys_per_sec' in pgmap:
         activities['Recovering_Keys'] = pgmap.get('recovering_keys_per_sec')
+    
+    # Free size
+    bytes_total = pgmap.get('bytes_total')
+    bytes_used = pgmap.get('bytes_used')
+    
+    activities['Used'] = bytes_used
+    activities['Total'] = bytes_total
+
     return HttpResponse(json.dumps(activities),
                         content_type='application/json')

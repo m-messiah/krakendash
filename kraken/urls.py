@@ -2,7 +2,6 @@ from django.conf.urls import patterns, include, url
 from django.contrib.auth.views import login, logout
 from api import views
 
-
 base_urlpatterns = patterns(
     '',
     url(r'^$', 'status.views.home', name='home'),
