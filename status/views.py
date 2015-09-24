@@ -216,9 +216,11 @@ def get_users_stat(s3_servers):
                             bucket: {}}
             except:
                 pass
-        return users_stat
+        return sorted(users_stat.items())
     except IndexError:
-        return users_stat
+        return sorted(users_stat.items())
+    except TypeError:
+        return get_users_stat(s3_servers)
     except exceptions.ServerDown:
         return get_users_stat(s3_servers)
 
