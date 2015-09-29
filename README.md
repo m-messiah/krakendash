@@ -58,7 +58,7 @@ Now you can run Kraken!
 
 ```
   sudo su -
-  yum upgrade && yum install -y python-pip python-dev libxml2-devel libxslt-devel
+  yum upgrade && yum install -y python-pip python-devel libxml2-devel libxslt-devel
   cd /var/www
   git clone https://github.com/m-messiah/krakendash.git
   cp krakendash/contrib/systemd/* /etc/systemd/system/multi-user.target.wants/
