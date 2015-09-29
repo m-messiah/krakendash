@@ -28,7 +28,7 @@ The ceph-rest-api must be run on either a member of your Ceph cluster, or on a i
 ```
   sudo su -
   apt-get update && apt-get install -y python-pip python-dev libxml2-dev libxslt-dev
-  git clone https://github.com/krakendash/krakendash
+  git clone https://github.com/m-messiah/krakendash.git
   cp krakendash/contrib/*.sh .
   cd krakendash
   pip install -r requirements.txt
