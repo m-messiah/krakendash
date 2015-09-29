@@ -53,7 +53,20 @@ Now you can run Kraken!
 
 ./api.sh (if you are running kraken on a ceph client or cluster node)
 ./django.sh
-  
+
+### Systemd-based system
+
+```
+  sudo su -
+  yum upgrade && yum install -y python-pip python-dev libxml2-devel libxslt-devel
+  cd /var/www
+  git clone https://github.com/m-messiah/krakendash.git
+  cp krakendash/contrib/systemd/* /etc/systemd/system/multi-user.target.wants/
+  systemctl daemon-reload
+  cd krakendash
+  pip install -r requirements.txt
+  systemctl start ceph-rest-api krakendash
+```  
   
 If you are not running Kraken on a Ceph node, edit krakendash/kraken/settings.py. Here you can change CEPH_BASE_URL to point at your host running ceph-rest-api. Copy the api.sh script to that host and run it as root. Kraken will then talk to that API endpoint for cluster data.
 
