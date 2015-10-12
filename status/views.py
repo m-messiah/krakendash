@@ -146,17 +146,13 @@ def home(request):
     osds_warn = 0
     osds_crit = 0
 
-    # Possible states are: exists, up, autoout, new, ???
-    osd_up = re.compile("(?=.*exists)(?=.*up)")
-    osd_down = re.compile("(?=.*exists)(?=.*autoout)")
-
     for osd_status in osd_state:
-        if osd_up.search(str(osd_status['state'])):
+        if osd_status["in"] and osd_status["up"]:
             osds_ok += 1
-        elif osd_down.search(str(osd_status['state'])):
-            osds_warn += 1
-        else:
+        elif osd_status["in"] == 0 and osd_status["up"] == 0:
             osds_crit += 1
+        else:
+            osds_warn += 1
 
     # Users and stats
     s3_servers = list(settings.S3_SERVERS)

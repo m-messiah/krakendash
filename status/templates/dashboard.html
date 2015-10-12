@@ -164,7 +164,11 @@ CRIT
                         {% for osd in osd_state %}
                             <div class="btn-group btn-group-xs" role="group">
                             {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
-                                <button id="osd_data" type="button" class="btn btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                {% if osd.up and osd.in %}
+                                    <button id="osd_data" type="button" class="btn btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                {% else %}
+                                    <button id="osd_data" type="button" class="btn btn-warning" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                {% endif %}
                             {% else %}
                                 <button id="osd_data" type="button" class="btn btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
                             {% endif %}
