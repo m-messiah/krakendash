@@ -33,7 +33,7 @@
 
 import re
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render_to_response
 from django.conf import settings
 from cephclient import wrapper
@@ -171,7 +171,10 @@ def home(request):
             rgw_off += 1
     radosgw_state = tuple(((server, radosgw_state[server])
                      for server in sorted(radosgw_state)))
-    return render_to_response('dashboard.html', locals())
+    if request.GET.get('json'):
+        return JsonResponse(locals())
+    else:
+        return render_to_response('dashboard.html', locals())
 
 
 def get_rgw_stat(server):
@@ -267,5 +270,4 @@ def activity(request):
     activities['Used'] = bytes_used
     activities['Total'] = bytes_total
 
-    return HttpResponse(json.dumps(activities),
-                        content_type='application/json')
+    return JsonResponse(activities)
