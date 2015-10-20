@@ -48,15 +48,18 @@ def param(request, key):
     return request.GET[key]
 
 
-def get_user_info(username):
+def get_user_info(username, public=False):
     userinfo = rgwAdmin.get_user(username)
     userinfo.update({"user_quota": rgwAdmin.get_quota(username, "user"),
                      "bucket_quota": rgwAdmin.get_quota(username, "bucket")})
+    if public:
+        map(lambda d: d.pop("secret_key"), userinfo["keys"])
+        map(lambda d: d.pop("secret_key"), userinfo["swift_keys"])
     return userinfo
 
 
 def ops(request):
-    users = {username: get_user_info(username)
+    users = {username: get_user_info(username, public=True)
              for username in rgwAdmin.get_users()}
     if 'json' in request.GET:
         return JsonResponse({"users": users})

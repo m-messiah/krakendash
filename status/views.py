@@ -214,7 +214,9 @@ def osd_details(request, osd_num):
     osd_disk_perf = filter(lambda x: x['id'] == int(osd_num),
                            osd_perf['output']['osd_perf_infos'])[0]
 
-    return render_to_response('osd_details.html', locals())
+    return render_to_response('osd_details.html',
+                              {'osd_disk': {'details': osd_disk_details,
+                                            'perf': osd_disk_perf}})
 
 
 def activity(_):
