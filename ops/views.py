@@ -31,8 +31,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import json
-from django.http import HttpResponse
+from django.http import JsonResponse
 from django.conf import settings
 from django.shortcuts import render
 from django.shortcuts import redirect
@@ -59,7 +58,10 @@ def get_user_info(username):
 def ops(request):
     users = {username: get_user_info(username)
              for username in rgwAdmin.get_users()}
-    return render(request, 'ops.html', locals())
+    if 'json' in request.GET:
+        return JsonResponse({"users": users})
+    else:
+        return render(request, 'ops.html', {"users": users})
 
 
 def user_custom(request, user, func, argument):
@@ -95,8 +97,7 @@ def user_custom(request, user, func, argument):
         old = rgwAdmin.get_user(user)["keys"]
         res = rgwAdmin.create_key(user)
         newkey = [item for item in res if item not in old][0]
-        return HttpResponse(json.dumps(newkey),
-                            content_type='application/json')
+        return JsonResponse(newkey)
 
     elif func == "subuser":
         user_info = get_user_info(user)
@@ -109,14 +110,12 @@ def user_custom(request, user, func, argument):
                 user_info = get_user_info(user)
                 for key in user_info["swift_keys"]:
                     if key["user"] == subuser:
-                            return HttpResponse(json.dumps(key),
-                                                content_type='application/json')
+                            return JsonResponse(key)
             else:
                 error = "User exists"
         else:
             error = "Swift must be \"" + user + ":[a-z0-9]\""
-        return HttpResponse(json.dumps({"user": "Error", "secret_key": error}),
-                            content_type='application/json')
+        return JsonResponse({"user": "Error", "secret_key": error})
 
     elif func == "customize":
         try:
@@ -170,7 +169,6 @@ def user_custom(request, user, func, argument):
                 enabled=(maxbuckobjects > -1 or maxbucksizekb > -1))
 
         except Exception as e:
-            error = e
-            return render(request, "ops.html", locals())
+            return render(request, "ops.html", {"error": e})
 
     return redirect("/krakendash/ops/")

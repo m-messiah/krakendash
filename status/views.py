@@ -37,7 +37,7 @@ from django.http import JsonResponse
 from django.shortcuts import render_to_response
 from django.conf import settings
 from cephclient import wrapper
-from humanize import naturalsize, suffixes
+from humanize import suffixes
 from rgwadmin import RGWAdmin, exceptions
 
 
@@ -71,14 +71,15 @@ def home(request):
     )
 
     # Get a rough estimate of cluster free space. Is this accurate ?
-    presp, pg_stat = ceph.pg_stat(body='json')
     bytes_total = cluster_status['output']['pgmap']['bytes_total']
     bytes_used = cluster_status['output']['pgmap']['bytes_used']
 
     def filesize(value):
         value = float(value)
-        if value == 1: return '1 Byte'
-        elif value < 1024 ** 2: return '%d Bytes' % value
+        if value == 1:
+            return '1 Byte'
+        elif value < 1024 ** 2:
+            return '%d Bytes' % value
         for i, s in enumerate(suffixes['decimal']):
             unit = 1024 ** (i + 2)
             if value < unit * 1024:
@@ -110,10 +111,10 @@ def home(request):
             response['pg']['crit'] += state['count']
 
     # pg statuses
-    response['pg']['states'] = dict()
+    response['pg']['stat'] = dict()
 
     for state in pg_statuses['pgs_by_state']:
-        response['pg']['states'][state['state_name']] = state['count']
+        response['pg']['stat'][state['state_name']] = state['count']
 
     # osds
     dresp, osd_dump = ceph.osd_dump(body='json')
@@ -215,7 +216,8 @@ def osd_details(request, osd_num):
 
     return render_to_response('osd_details.html', locals())
 
-def activity(request):
+
+def activity(_):
     ceph = wrapper.CephWrapper(endpoint=settings.CEPH_BASE_URL)
 
     sresp, cluster_status = ceph.status(body='json')
