@@ -247,3 +247,7 @@ def activity(_):
     activities['Total'] = bytes_total
 
     return JsonResponse(activities)
+
+
+def api(_):
+    return render_to_response("api.html")
