@@ -60,9 +60,9 @@ CRIT
                             </tr>
                             <tr>
                                 <td><b>OSD</b></td>
-                                <td>{{ osds_ok }}</td>
-                                <td>{{ osds_warn }}</td>
-                                <td>{{ osds_crit }}</td>
+                                <td>{{ osd.ok }}</td>
+                                <td>{{ osd.warn }}</td>
+                                <td>{{ osd.crit }}</td>
                             </tr>
                             <tr>
                                 <td><b>PG</b></td>
@@ -161,16 +161,16 @@ CRIT
                 </div>
                 <div class="panel-body" align="left">
                     <div class="btn-group btn-group-justified" role="group">
-                        {% for osd in osd_state %}
+                        {% for storage in osd.state %}
                             <div class="btn-group btn-group-xs" role="group">
-                            {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
-                                {% if osd.up and osd.in %}
-                                    <button id="osd_data" type="button" class="btn btn-success" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                            {% if storage.state.0 == "exists" and storage.state.1 == "up" %}
+                                {% if storage.up and storage.in %}
+                                    <button id="osd_data" type="button" class="btn btn-success" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
                                 {% else %}
-                                    <button id="osd_data" type="button" class="btn btn-warning" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                    <button id="osd_data" type="button" class="btn btn-warning" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
                                 {% endif %}
                             {% else %}
-                                <button id="osd_data" type="button" class="btn btn-danger" role="button" send_url="/krakendash/osd/{{ osd.osd }}">{{ osd.osd }}</button>
+                                <button id="osd_data" type="button" class="btn btn-danger" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
                             {% endif %}
                             </div>
                         {% endfor %}
@@ -187,7 +187,7 @@ CRIT
                 </div>
                 <div class="panel-body" align="left">
                     <div class="btn-group btn-group-justified nofocus" role="group">
-                        {% for rgw, status in radosgw.stat.items|dictsort:"lower" %}
+                        {% for rgw, status in radosgw.stat.items|dictsort:"0.lower" %}
                             <div class="btn-group btn-group-xs" role="group">
                             {% if status == 1 %}
                                 <button type="button" class="btn btn-success">{{ rgw }}</button>
@@ -207,7 +207,7 @@ CRIT
         </div>
         <div class="panel-body">
            <div class="row"><script>var draw = new Array();</script>
-                {% for user, data in users.stat %}
+                {% for user, data in users.stat.items|dictsort:"0.lower" %}
                  <div class="col-sm-3">
                     <div>{{ user }}</div>
                     <div id="gauge-{{ user }}" data-container="body" data-toggle="popover" data-placement="top" data-content=""></div>
@@ -244,7 +244,7 @@ CRIT
                             {% if stat %}
                                 var bg = r.path().attr(param).attr({arc: [1024, 1024, R, 1]});
                                 var scale = r.path().attr(param).attr({arc: [1, 1024, R]});
-                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }} - 1)), 1024, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
+                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }})), 1024, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
                                 var hoverIn = function() {this.attr({"stroke-width": strength + 3}); $('#gauge-{{user}}').popover({content: "{{ bucket }}: {{stat.size_kb|mul:1024|filesizeformat}} ({{stat.size_kb_actual|mul:1024|filesizeformat}})"}); $('#gauge-{{user}}').popover('show')};
 
                                 var hoverOut = function() {this.attr({"stroke-width": strength});$('#gauge-{{user}}').popover('destroy')}

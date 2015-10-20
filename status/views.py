@@ -75,11 +75,20 @@ def home(request):
     bytes_total = cluster_status['output']['pgmap']['bytes_total']
     bytes_used = cluster_status['output']['pgmap']['bytes_used']
 
-    response['data_avail'] = str(
-        float(naturalsize(bytes_total).split()[0]) * 1024)
-    response['data_scale'] = naturalsize(bytes_total / 1024).split()[1]
-    scale = suffixes['decimal'].index(response['data_scale']) + 1
-    response['data_used'] = round(float(bytes_used)/pow(1024.0, scale), 1)
+    def filesize(value):
+        value = float(value)
+        if value == 1: return '1 Byte'
+        elif value < 1024 ** 2: return '%d Bytes' % value
+        for i, s in enumerate(suffixes['decimal']):
+            unit = 1024 ** (i + 2)
+            if value < unit * 1024:
+                return i, (1024 * value / unit), s
+        return i, (1024 * value / unit), s
+
+    (response['scale'],
+     response['data_avail'],
+     response['data_scale']) = filesize(bytes_total)
+    response['data_used'] = round(float(bytes_used)/(1024.0 ** (response['scale'] + 1)), 1)
     # pgs
     pg_statuses = cluster_status['output']['pgmap']
 
@@ -121,7 +130,7 @@ def home(request):
 
     # Users and stats
     s3_servers = list(settings.S3_SERVERS)
-    response['users']['stat'] = get_users_stat(s3_servers)
+    response['users'] = {'stat': get_users_stat(s3_servers)}
     
     # RGW statuses
     response['radosgw'] = {'stat': dict(), 'ok': 0, 'fail': 0}
@@ -134,7 +143,7 @@ def home(request):
         else:
             response['radosgw']['fail'] += 1
 
-    if request.GET.get('json'):
+    if 'json' in request.GET:
         return JsonResponse(response)
     else:
         return render_to_response('dashboard.html', response)
@@ -178,9 +187,9 @@ def get_users_stat(s3_servers):
                             bucket: {}}
             except:
                 pass
-        return sorted(users_stat.items())
+        return users_stat
     except IndexError:
-        return sorted(users_stat.items())
+        return users_stat
     except TypeError:
         return get_users_stat(s3_servers)
     except exceptions.ServerDown:
