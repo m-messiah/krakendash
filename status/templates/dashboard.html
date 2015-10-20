@@ -54,9 +54,9 @@ CRIT
                         <tbody>
                             <tr>
                                 <td><b>MON</b></td>
-                                <td>{{ mons_ok }}</td>
-                                <td>{{ mons_warn }}</td>
-                                <td>{{ mons_crit }}</td>
+                                <td>{{ mons.ok }}</td>
+                                <td>{{ mons.warn }}</td>
+                                <td>{{ mons.crit }}</td>
                             </tr>
                             <tr>
                                 <td><b>OSD</b></td>
@@ -66,15 +66,15 @@ CRIT
                             </tr>
                             <tr>
                                 <td><b>PG</b></td>
-                                <td>{{ pg_ok }}</td>
-                                <td>{{ pg_warn }}</td>
-                                <td>{{ pg_crit }}</td>
+                                <td>{{ pg.ok }}</td>
+                                <td>{{ pg.warn }}</td>
+                                <td>{{ pg.crit }}</td>
                             </tr>
                             <tr>
                                 <td><b>RGW</b></td>
-                                <td>{{ rgw_ok }}</td>
+                                <td>{{ radosgw.ok }}</td>
                                 <td>0</td>
-                                <td>{{ rgw_off }}</td>
+                                <td>{{ radosgw.fail }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -144,7 +144,7 @@ CRIT
                     <h3 class="panel-title">PG States</h3>
                 </div>
                 <ul class="list-group">
-                    {% for k, v in pg_states.items %}
+                    {% for k, v in pg.states.items %}
                         <li class="list-group-item">
                             {{ k }}
                             <span class="label label-default">{{ v }}</span>
@@ -187,7 +187,7 @@ CRIT
                 </div>
                 <div class="panel-body" align="left">
                     <div class="btn-group btn-group-justified nofocus" role="group">
-                        {% for rgw, status in radosgw_state %}
+                        {% for rgw, status in radosgw.stat.items|dictsort:"lower" %}
                             <div class="btn-group btn-group-xs" role="group">
                             {% if status == 1 %}
                                 <button type="button" class="btn btn-success">{{ rgw }}</button>
@@ -207,7 +207,7 @@ CRIT
         </div>
         <div class="panel-body">
            <div class="row"><script>var draw = new Array();</script>
-                {% for user, data in users_stat %}
+                {% for user, data in users.stat %}
                  <div class="col-sm-3">
                     <div>{{ user }}</div>
                     <div id="gauge-{{ user }}" data-container="body" data-toggle="popover" data-placement="top" data-content=""></div>

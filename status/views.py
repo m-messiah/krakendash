@@ -33,34 +33,24 @@
 
 import re
 
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render_to_response
 from django.conf import settings
 from cephclient import wrapper
-import json
-import requests
-from humanize import filesize
+from humanize import naturalsize, suffixes
 from rgwadmin import RGWAdmin, exceptions
-
-
-def req(url):
-    """
-    The main request builder
-    """
-    headers = {'Accept': 'application/json'}
-    timeout = 10
-    r = requests.get(url, headers=headers, timeout=timeout)
-    response_json = r.text
-    return response_json
 
 
 def home(request):
     """
     Main dashboard, Overall cluster health and status
     """
+
+    response = {}
+
     ceph = wrapper.CephWrapper(endpoint=settings.CEPH_BASE_URL)
 
-    cresp, cluster_health = ceph.health(body='json')
+    cresp, response['cluster_health'] = ceph.health(body='json')
     sresp, cluster_status = ceph.status(body='json')
 
     # Monitors
@@ -68,54 +58,32 @@ def home(request):
     up_mons = (cluster_status['output']['health']['health']
                              ['health_services'][0]['mons'])
     total_mon_count = len(all_mons)
-    mons_ok = 0
-    mons_warn = 0
-    mons_crit = 0
+    response['mons'] = {'ok': 0, 'warn': 0, 'crit': 0}
 
     for mon in up_mons:
         if mon['health'] == "HEALTH_OK":
-            mons_ok += 1
+            response['mons']['ok'] += 1
         else:
-            mons_warn += 1
+            response['mons']['warn'] += 1
 
-    mons_crit = total_mon_count - (mons_ok + mons_warn)
-
-    # Activity
-    pgmap = cluster_status['output']['pgmap']
-    activities = {}
-    if 'read_bytes_sec' in pgmap:
-        activities['Read'] = filesize.naturalsize(pgmap.get('read_bytes_sec'))
-    if 'write_bytes_sec' in pgmap:
-        activities['Write'] = filesize.naturalsize(
-            pgmap.get('write_bytes_sec'))
-    if 'op_per_sec' in pgmap:
-        activities['Ops'] = pgmap.get('op_per_sec')
-    if 'recovering_objects_per_sec' in pgmap:
-        activities['Recovering Objects'] = pgmap.get(
-            'recovering_objects_per_sec')
-    if 'recovering_bytes_per_sec' in pgmap:
-        activities['Recovery Speed'] = filesize.naturalsize(
-            pgmap.get('recovering_bytes_per_sec'))
-    if 'recovering_keys_per_sec' in pgmap:
-        activities['Recovering Keys'] = pgmap.get('recovering_keys_per_sec')
+    response['mons']['crit'] = total_mon_count - (
+        response['mons']['ok'] + response['mons']['crit']
+    )
 
     # Get a rough estimate of cluster free space. Is this accurate ?
     presp, pg_stat = ceph.pg_stat(body='json')
     bytes_total = cluster_status['output']['pgmap']['bytes_total']
     bytes_used = cluster_status['output']['pgmap']['bytes_used']
 
-    data_avail = str(
-        float(filesize.naturalsize(bytes_total).split()[0]) * 1024)
-    data_scale = filesize.naturalsize(bytes_total / 1024).split()[1]
-    scale = filesize.suffixes['decimal'].index(data_scale) + 1
-    data_used = round(float(bytes_used)/pow(1024.0, scale), 1)
+    response['data_avail'] = str(
+        float(naturalsize(bytes_total).split()[0]) * 1024)
+    response['data_scale'] = naturalsize(bytes_total / 1024).split()[1]
+    scale = suffixes['decimal'].index(response['data_scale']) + 1
+    response['data_used'] = round(float(bytes_used)/pow(1024.0, scale), 1)
     # pgs
     pg_statuses = cluster_status['output']['pgmap']
 
-    pg_ok = 0
-    pg_warn = 0
-    pg_crit = 0
-
+    response['pg'] = {'ok': 0, 'warn': 0, 'crit': 0}
     # pg states
     pg_warn_status = re.compile("(creating|degraded|replay|splitting|"
                                 "scrubbing|repair|recovering|backfill"
@@ -124,57 +92,52 @@ def home(request):
 
     for state in pg_statuses['pgs_by_state']:
         if state['state_name'] == "active+clean":
-            pg_ok = pg_ok + state['count']
+            response['pg']['ok'] += state['count']
 
         elif pg_warn_status.search(state['state_name']):
-            pg_warn = pg_warn + state['count']
+            response['pg']['warn'] += state['count']
 
         elif pg_crit_status.search(state['state_name']):
-            pg_crit = pg_crit + state['count']
+            response['pg']['crit'] += state['count']
 
     # pg statuses
-    pg_states = dict()
+    response['pg']['states'] = dict()
 
     for state in pg_statuses['pgs_by_state']:
-        pg_states[state['state_name']] = state['count']
+        response['pg']['states'][state['state_name']] = state['count']
 
     # osds
     dresp, osd_dump = ceph.osd_dump(body='json')
-    osd_state = osd_dump['output']['osds']
+    response['osd'] = {'state': osd_dump['output']['osds'],
+                       'ok': 0, 'warn': 0, 'crit': 0}
 
-    osds_ok = 0
-    osds_warn = 0
-    osds_crit = 0
-
-    for osd_status in osd_state:
+    for osd_status in response['osd']['state']:
         if osd_status["in"] and osd_status["up"]:
-            osds_ok += 1
+            response['osd']['ok'] += 1
         elif osd_status["in"] == 0 and osd_status["up"] == 0:
-            osds_crit += 1
+            response['osd']['crit'] += 1
         else:
-            osds_warn += 1
+            response['osd']['warn'] += 1
 
     # Users and stats
     s3_servers = list(settings.S3_SERVERS)
-    users_stat = get_users_stat(s3_servers)
+    response['users']['stat'] = get_users_stat(s3_servers)
     
     # RGW statuses
-    radosgw_state = dict()
-    rgw_ok = 0
-    rgw_off = 0
+    response['radosgw'] = {'stat': dict(), 'ok': 0, 'fail': 0}
+
     for server in settings.S3_SERVERS:
         stat = get_rgw_stat(server)
-        radosgw_state[server] = stat
+        response['radosgw']['stat'][server] = stat
         if stat:
-            rgw_ok += 1
+            response['radosgw']['ok'] += 1
         else:
-            rgw_off += 1
-    radosgw_state = tuple(((server, radosgw_state[server])
-                     for server in sorted(radosgw_state)))
+            response['radosgw']['fail'] += 1
+
     if request.GET.get('json'):
-        return JsonResponse(locals())
+        return JsonResponse(response)
     else:
-        return render_to_response('dashboard.html', locals())
+        return render_to_response('dashboard.html', response)
 
 
 def get_rgw_stat(server):
