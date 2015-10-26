@@ -7,9 +7,7 @@
     WorkingDirectory=/var/www/krakendash
     User=ceph
     Group=ceph
-    Restart=always
     PIDFile=/var/run/krakendash.pid
-    RestartSec=500ms
 
 [Install]
     WantedBy=multi-user.target
