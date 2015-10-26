@@ -76,64 +76,68 @@ def user_custom(request, user, func, argument):
     if argument:
         argument = argument[1:]
 
-    if user == "0" and func == "adduser":
+    def adduser(r, u, _):
+        if u != "0":
+            return redirect("/krakendash/ops/")
         try:
-            uid = param(request, 'newUid')
-            name = param(request, 'newName')
-            email = param(request, 'newEmail')
+            uid = param(r, 'newUid')
+            name = param(r, 'newName')
+            email = param(r, 'newEmail')
         except Exception as e:
-            error = e
+            return render(r, 'ops.html', {"error": e})
         else:
             res = rgwAdmin.create_user(uid, name, email)
-            return render(request, "user.html", {"username": uid,
-                                                 "stats": res,
-                                                 "new": True})
+            return render(r, "user.html", {"username": uid,
+                                           "stats": res,
+                                           "new": True})
 
-    elif func == "suspend":
-        if int(argument) > 0:
-            res = rgwAdmin.modify_user(user, generate_key=False)
+    def suspend(_, u, arg):
+        if int(arg) > 0:
+            rgwAdmin.modify_user(u, generate_key=False)
         else:
-            res = rgwAdmin.modify_user(user, generate_key=False,
-                                       suspended=True)
+            rgwAdmin.modify_user(u, generate_key=False, suspended=True)
+        return redirect("/krakendash/ops/")
 
-    elif func == "addkey":
-        old = rgwAdmin.get_user(user)["keys"]
-        res = rgwAdmin.create_key(user)
+    def addkey(_, u, __):
+        old = rgwAdmin.get_user(u)["keys"]
+        res = rgwAdmin.create_key(u)
         newkey = [item for item in res if item not in old][0]
         return JsonResponse(newkey)
 
-    elif func == "subuser":
-        user_info = get_user_info(user)
-        subuser = param(request, "subuser_name")
-        if user in subuser:
-            if subuser not in [u["id"] for u in user_info["subusers"]]:
-                res = rgwAdmin.create_subuser(
-                    user, subuser=subuser, key_type='swift', access='full',
+    def subuser(r, req_user, _):
+        user_info = get_user_info(req_user)
+        sub_user = param(r, "subuser_name")
+        if req_user in sub_user:
+            if sub_user not in [u["id"] for u in user_info["subusers"]]:
+                rgwAdmin.create_subuser(
+                    req_user, subuser=sub_user,
+                    key_type='swift', access='full',
                     generate_secret=True)
-                user_info = get_user_info(user)
+                user_info = get_user_info(req_user)
                 for key in user_info["swift_keys"]:
-                    if key["user"] == subuser:
+                    if key["user"] == sub_user:
                             return JsonResponse(key)
+                error = "Key not added"
             else:
                 error = "User exists"
         else:
-            error = "Swift must be \"" + user + ":[a-z0-9]\""
+            error = "Swift must be \"" + req_user + ":[a-z0-9]\""
         return JsonResponse({"user": "Error", "secret_key": error})
 
-    elif func == "customize":
+    def customize(r, req_user, _):
         try:
-            p_name, p_email, p_maxbuckets, p_subuser = None, None, None, None
-            p_maxobjects, p_maxsizekb = None, None
-            user_info = get_user_info(user)
+            (p_name, p_email, p_maxbuckets,
+             p_subuser, p_maxobjects, p_maxsizekb) = [None] * 6
+            user_info = get_user_info(req_user)
             suspended = user_info["suspended"]
-            email = param(request, 'email')
-            name = param(request, 'name')
-            subuser = param(request, "subuser")
-            maxbuckets = int(param(request, 'maxbuckets'))
-            maxobjects = int(param(request, 'maxobjects'))
-            maxsizekb = int(param(request, 'maxsizekb'))
-            maxbuckobjects = int(param(request, 'maxbuckobjects'))
-            maxbucksizekb = int(param(request, 'maxbucksizekb'))
+            email = param(r, 'email')
+            name = param(r, 'name')
+            sub_user = param(r, "subuser")
+            maxbuckets = int(param(r, 'maxbuckets'))
+            maxobjects = int(param(r, 'maxobjects'))
+            maxsizekb = int(param(r, 'maxsizekb'))
+            maxbuckobjects = int(param(r, 'maxbuckobjects'))
+            maxbucksizekb = int(param(r, 'maxbucksizekb'))
 
             # Change name, email, max buckets
             if email != user_info["email"]:
@@ -143,10 +147,10 @@ def user_custom(request, user, func, argument):
             if maxbuckets != user_info["max_buckets"]:
                 p_maxbuckets = maxbuckets
 
-            res = rgwAdmin.modify_user(user, p_name, p_email,
-                                       max_buckets=p_maxbuckets,
-                                       generate_key=False,
-                                       suspended=suspended)
+            rgwAdmin.modify_user(req_user, p_name, p_email,
+                                 max_buckets=p_maxbuckets,
+                                 generate_key=False,
+                                 suspended=suspended)
 
             # Change user quota
             if maxobjects != user_info["user_quota"]["max_objects"]:
@@ -155,8 +159,8 @@ def user_custom(request, user, func, argument):
             if maxsizekb != int(user_info["user_quota"]["max_size_kb"]):
                 p_maxsizekb = maxsizekb
 
-            res = rgwAdmin.set_quota(
-                user, "user", p_maxsizekb, p_maxobjects,
+            rgwAdmin.set_quota(
+                req_user, "user", p_maxsizekb, p_maxobjects,
                 enabled=(maxobjects > -1 or maxsizekb > -1))
 
             # Change bucket quota
@@ -167,11 +171,16 @@ def user_custom(request, user, func, argument):
             if maxbucksizekb != int(user_info["bucket_quota"]["max_size_kb"]):
                 p_maxsizekb = maxbucksizekb
 
-            res = rgwAdmin.set_quota(
-                user, "bucket", p_maxsizekb, p_maxobjects,
+            rgwAdmin.set_quota(
+                req_user, "bucket", p_maxsizekb, p_maxobjects,
                 enabled=(maxbuckobjects > -1 or maxbucksizekb > -1))
 
         except Exception as e:
-            return render(request, "ops.html", {"error": e})
+            return render(r, "ops.html", {"error": e})
 
-    return redirect("/krakendash/ops/")
+    return {"adduser": adduser,
+            "suspend": suspend,
+            "addkey": addkey,
+            "subuser": subuser,
+            "customize": customize
+            }.get(func, redirect("/krakendash/ops/"))(request, user, argument)

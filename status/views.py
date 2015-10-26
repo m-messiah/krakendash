@@ -89,7 +89,8 @@ def home(request):
     (response['scale'],
      response['data_avail'],
      response['data_scale']) = filesize(bytes_total)
-    response['data_used'] = round(float(bytes_used)/(1024.0 ** (response['scale'] + 1)), 1)
+    response['data_used'] = round(float(bytes_used) /
+                                  (1024.0 ** (response['scale'] + 1)), 1)
     # pgs
     pg_statuses = cluster_status['output']['pgmap']
 
@@ -160,6 +161,7 @@ def get_rgw_stat(server):
             return 0
     except:
         return 0
+
 
 def get_users_stat(s3_servers):
     users_stat = {}
