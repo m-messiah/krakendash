@@ -153,7 +153,8 @@ def home(request):
 
 def get_rgw_stat(server):
     try:
-        rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
+        rgwAdmin = RGWAdmin(settings.S3_CRED['access_key'],
+                            settings.S3_CRED['secret_key'],
                             server, secure=False)
         if rgwAdmin.get_users():
             return 1
@@ -166,7 +167,8 @@ def get_rgw_stat(server):
 def get_users_stat(s3_servers):
     users_stat = {}
     try:
-        rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
+        rgwAdmin = RGWAdmin(settings.S3_CRED['access_key'],
+                            settings.S3_CRED['secret_key'],
                             s3_servers.pop(0), secure=False) 
         buckets_list = rgwAdmin.get_bucket()
         for bucket in buckets_list:

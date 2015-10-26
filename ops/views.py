@@ -38,7 +38,8 @@ from django.shortcuts import redirect
 from rgwadmin import RGWAdmin
 
 s3_servers = list(settings.S3_SERVERS)
-rgwAdmin = RGWAdmin(settings.S3_ACCESS, settings.S3_SECRET,
+rgwAdmin = RGWAdmin(settings.S3_CRED['access_key'],
+                    settings.S3_CRED['secret_key'],
                     s3_servers.pop(0), secure=False)
 
 

@@ -91,10 +91,14 @@ TEMPLATE_DIRS = (
 # Ceph REST URLS
 CEPH_BASE_URL = 'http://127.0.0.1:5000/api/v0.1/'
 
-S3_SERVERS = [
-    'ceph1',
-    'ceph2',
-    'ceph3',
-]
-S3_ACCESS = ""
-S3_SECRET = ""
+S3_SERVERS = ["ceph%i" % i for i in range(1, 8)]
+
+# Hack for not write credentials inside settings.py
+from subprocess import check_output
+from json import loads
+
+S3_CRED = loads(check_output(['radosgw-admin', 'user',
+                              'info', '--uid=admin']))['keys'][0]
+
+# or in old way:
+# S3_CRED = {'access_key': "", 'secret_key': ""}
