@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% load mathfilters %}
+{% load humanize %}
 {% block title %}
 Ceph
 {% if cluster_health.output.overall_status == "HEALTH_OK" %}
@@ -8,7 +9,7 @@ OK
 WARN
 {% else %}
 CRIT
-{% endif %}/Used: {{ data_used }}{{ data_scale }}
+{% endif %}/Used: {{ data_used|floatformat }}{{ data_scale }}
 {% endblock %}
 {% block content %}
 <div class="container">
@@ -126,8 +127,8 @@ CRIT
                             var hoverOut = function() {this.attr({"stroke-width": strength});};
                             scale.hover(hoverIn, hoverOut, scale, scale);
                             r.text(center - R, center + 10, "0").attr({fill: "#ccc" });
-                            r.text(center + R, center + 10, "{{ data_avail }}").attr({fill: "#ccc" });
-                            r.text(center, center - strength / 3.4, "{{ data_used }}").attr({"font-weight": 600, "font-size": strength / 1.2});
+                            r.text(center + R, center + 10, "{{ data_avail|floatformat }}").attr({fill: "#ccc" });
+                            r.text(center, center - strength / 3.4, "{{ data_used|floatformat }}").attr({"font-weight": 600, "font-size": strength / 1.2});
                             r.text(center, center + ((strength / 5 > 10)? 2 + strength / 5 : 10), "{{ data_scale }}").attr({fill: "#ccc", "font-size": (strength / 2.5 > 10)? strength / 2.5 : 10 });
                         };
                         draw_usage();
@@ -262,7 +263,7 @@ CRIT
                         {% for bucket, stat in data.items %}
                             <li>
                                 <p class="text-left {% if not stat %}text-muted{% endif %}" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}
-                                {% if stat %}<span class="label label-default pull-right">{{stat.num_objects}}  <i class="glyphicon glyphicon-file"></i> </span>{% endif %}
+                                {% if stat %}<span class="label label-default pull-right">{{stat.num_objects|intcomma}}  <i class="glyphicon glyphicon-file"></i> </span>{% endif %}
                                 </p>
                             </li>
                         {% endfor %}

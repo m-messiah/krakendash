@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'mathfilters',
 )
 
@@ -97,4 +98,3 @@ S3_SERVERS = [
 ]
 S3_ACCESS = ""
 S3_SECRET = ""
-
