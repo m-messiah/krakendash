@@ -129,22 +129,24 @@ def home(request):
             response['osd']['crit'] += 1
         else:
             response['osd']['warn'] += 1
-
-    # Users and stats
-    s3_servers = list(settings.S3_SERVERS)
-    response['users'] = {'stat': get_users_stat(s3_servers)}
-    
+   
     # RGW statuses
     response['radosgw'] = {'stat': dict(), 'ok': 0, 'fail': 0}
 
+    s3server = None
     for server in settings.S3_SERVERS:
         stat = get_rgw_stat(server)
         response['radosgw']['stat'][server] = stat
         if stat:
+            s3server = server
             response['radosgw']['ok'] += 1
         else:
             response['radosgw']['fail'] += 1
 
+    # Users and stats
+    if s3server:
+        response['users'] = {'stat': get_users_stat(s3server)}
+ 
     if 'json' in request.GET:
         return JsonResponse(response)
     else:
@@ -164,12 +166,12 @@ def get_rgw_stat(server):
         return 0
 
 
-def get_users_stat(s3_servers):
+def get_users_stat(s3_server):
     users_stat = {}
     try:
         rgwAdmin = RGWAdmin(settings.S3_CRED['access_key'],
                             settings.S3_CRED['secret_key'],
-                            s3_servers.pop(0), secure=False) 
+                            s3_server, secure=False) 
         buckets_list = rgwAdmin.get_bucket()
         for bucket in buckets_list:
             try:
@@ -193,12 +195,8 @@ def get_users_stat(s3_servers):
             except:
                 pass
         return users_stat
-    except IndexError:
+    except:
         return users_stat
-    except TypeError:
-        return get_users_stat(s3_servers)
-    except exceptions.ServerDown:
-        return get_users_stat(s3_servers)
 
 
 def osd_details(request, osd_num):
