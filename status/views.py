@@ -39,6 +39,7 @@ from django.conf import settings
 from cephclient import wrapper
 from humanize import suffixes
 from rgwadmin import RGWAdmin, exceptions
+from multiprocessing import Pool
 
 
 def home(request):
@@ -131,21 +132,21 @@ def home(request):
             response['osd']['warn'] += 1
    
     # RGW statuses
-    response['radosgw'] = {'stat': dict(), 'ok': 0, 'fail': 0}
-
-    s3server = None
-    for server in settings.S3_SERVERS:
-        stat = get_rgw_stat(server)
-        response['radosgw']['stat'][server] = stat
-        if stat:
-            s3server = server
-            response['radosgw']['ok'] += 1
-        else:
-            response['radosgw']['fail'] += 1
+    pool = Pool(len(settings.S3_SERVERS))
+    response['radosgw'] = {'stat': dict(
+        pool.map(get_rgw_stat, settings.S3_SERVERS)
+    )}
+    response['radosgw']['ok'] = len(
+        filter(lambda (i,v): v > 0, response['radosgw']['stat'].items())
+    )
+    response['radosgw']['fail'] = len(
+        settings.S3_SERVERS) - response['radosgw']['ok']
 
     # Users and stats
-    if s3server:
-        response['users'] = {'stat': get_users_stat(s3server)}
+    for s3server, s3server_stat in response['radosgw']['stat'].items():
+        if s3server_stat:
+            response['users'] = {'stat': get_users_stat(s3server)}
+            break
  
     if 'json' in request.GET:
         return JsonResponse(response)
@@ -159,11 +160,11 @@ def get_rgw_stat(server):
                             settings.S3_CRED['secret_key'],
                             server, secure=False)
         if rgwAdmin.get_users():
-            return 1
+            return server, 1
         else:
-            return 0
+            return server, 0
     except:
-        return 0
+        return server, 0
 
 
 def get_users_stat(s3_server):
