@@ -60,8 +60,19 @@ def get_user_info(username, public=False):
 
 
 def ops(request):
-    users = {username: get_user_info(username, public=True)
-             for username in rgwAdmin.get_users()}
+    try:
+        users = {username: get_user_info(username, public=True)
+                 for username in rgwAdmin.get_users()}
+    except TypeError:
+        try:
+            global rgwAdmin
+            rgwAdmin = RGWAdmin(settings.S3_CRED['access_key'],
+                                settings.S3_CRED['secret_key'],
+                                s3_servers.pop(0), secure=False)
+            return ops(request)
+        except IndexError:
+            return render(request, 'ops.html', {'users': users,
+                                                'error': "No available RGW"})
     if 'json' in request.GET:
         return JsonResponse({"users": users})
     else:
