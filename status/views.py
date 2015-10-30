@@ -32,7 +32,7 @@
 
 
 import re
-
+from socket import gethostbyaddr
 from django.http import JsonResponse
 from django.shortcuts import render_to_response
 from django.conf import settings
@@ -120,16 +120,26 @@ def home(request):
 
     # osds
     dresp, osd_dump = ceph.osd_dump(body='json')
-    response['osd'] = {'state': osd_dump['output']['osds'],
+    osd_stat = {}
+    for osd in osd_dump['output']['osds']:
+        hostname = gethostbyaddr(
+            osd["public_addr"].split(":")[0]
+        )[0].split(".")[0]
+        if hostname in osd_stat:
+            osd_stat[hostname].append(osd)
+        else:
+            osd_stat[hostname] = [osd,]
+    response['osd'] = {'state': sorted(osd_stat.items()),
                        'ok': 0, 'warn': 0, 'crit': 0}
 
-    for osd_status in response['osd']['state']:
-        if osd_status["in"] and osd_status["up"]:
-            response['osd']['ok'] += 1
-        elif osd_status["in"] == 0 and osd_status["up"] == 0:
-            response['osd']['crit'] += 1
-        else:
-            response['osd']['warn'] += 1
+    for hostname, storages in response['osd']['state']:
+        for osd_status in storages:
+            if osd_status["in"] and osd_status["up"]:
+                response['osd']['ok'] += 1
+            elif osd_status["in"] == 0 and osd_status["up"] == 0:
+                response['osd']['crit'] += 1
+            else:
+                response['osd']['warn'] += 1
    
     # RGW statuses
     pool = Pool(len(settings.S3_SERVERS))
@@ -208,8 +218,7 @@ def osd_details(request, osd_num):
     osd_disk_details = filter(
         lambda x: x['osd'] == int(osd_num), osd_dump['output']['osds']
     )[0]
-    import socket
-    osd_disk_details["name"] = socket.gethostbyaddr(
+    osd_disk_details["name"] = gethostbyaddr(
         osd_disk_details["public_addr"].split(":")[0]
     )[0].split(".")[0]
 

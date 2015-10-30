@@ -32,3 +32,5 @@ body {padding-top:70px;text-align:center;}
 .btn-toggle {background: none; float: right;position: relative; top: -6pt; right: -10pt;}
 
 .nofocus {pointer-events: none; cursor: not-allowed;}
+
+.btn-group, .btn-group-vertical {vertical-align: top;}

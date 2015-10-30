@@ -162,8 +162,11 @@ CRIT
                 </div>
                 <div class="panel-body" align="left">
                     <div class="btn-group btn-group-justified" role="group">
-                        {% for storage in osd.state %}
+                    {% for hostname, storages in osd.state %}
+                        <div class="btn-group btn-group-vertical" role="group">
+                            <button type="button" class="btn btn-default" disabled="disabled">{{hostname}}</button>
                             <div class="btn-group btn-group-xs" role="group">
+                            {% for storage in storages %}
                             {% if storage.state.0 == "exists" and storage.state.1 == "up" %}
                                 {% if storage.up and storage.in %}
                                     <button id="osd_data" type="button" class="btn btn-success" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
@@ -173,8 +176,10 @@ CRIT
                             {% else %}
                                 <button id="osd_data" type="button" class="btn btn-danger" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
                             {% endif %}
+                            {% endfor %}
                             </div>
-                        {% endfor %}
+                        </div>
+                    {% endfor %}
                     </div>
                 </div>
             </div>
