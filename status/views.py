@@ -32,6 +32,7 @@
 
 
 import re
+from collections import defaultdict
 from socket import gethostbyaddr
 from django.http import JsonResponse
 from django.shortcuts import render_to_response
@@ -158,7 +159,7 @@ def home(request):
     # Users and stats
     for s3server, s3server_stat in response['radosgw']['stat'].items():
         if s3server_stat:
-            response['users'] = {'stat': get_users_stat(s3server)}
+            response['users'] = get_users_stat(s3server)
             break
  
     if 'json' in request.GET:
@@ -181,7 +182,7 @@ def get_rgw_stat(server):
 
 
 def get_users_stat(s3_server):
-    users_stat = {}
+    users_stat = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     try:
         rgwAdmin = RGWAdmin(settings.S3_CRED['access_key'],
                             settings.S3_CRED['secret_key'],
@@ -190,22 +191,18 @@ def get_users_stat(s3_server):
         for bucket in buckets_list:
             try:
                 bucket_stat = rgwAdmin.get_bucket(bucket)
-                if bucket_stat["owner"] in users_stat:
-                    if "rgw.main" in bucket_stat["usage"]:
-                        users_stat[
-                            bucket_stat["owner"]
-                        ][bucket] = bucket_stat["usage"]["rgw.main"]
-                    else:
-                        users_stat[
-                            bucket_stat["owner"]
-                        ][bucket] = {}
-                else:
-                    if "rgw.main" in bucket_stat["usage"]:
-                        users_stat[bucket_stat["owner"]] = {
-                            bucket: bucket_stat["usage"]["rgw.main"]}
-                    else:
-                        users_stat[bucket_stat["owner"]] = {
-                            bucket: {}}
+                username = rgwAdmin.get_user(
+                    bucket_stat["owner"]
+                )["display_name"]
+
+                users_stat[
+                    username.split(":")[0].upper()
+                    if ':' in username
+                    else "-"
+                ][
+                    bucket_stat["owner"]
+                ][bucket] = bucket_stat["usage"]["rgw.main"]
+
             except:
                 pass
         return users_stat
