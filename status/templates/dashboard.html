@@ -218,7 +218,7 @@ CRIT
                 </div>
                 <div id="collapse-{{group}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-{{group}}">
                     <div class="panel-body" id="userList">
-                        {% for user, data in users.stat.items|dictsort:"0.lower" %}
+                        {% for user, data in list_users.items|dictsort:"0.lower" %}
                          <div class="col-sm-4 col-lg-3">
                             <div>{{ user }}</div>
                             <div id="gauge-{{ user }}" data-container="body" data-toggle="popover" data-placement="top" data-content=""></div>
