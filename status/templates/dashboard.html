@@ -209,7 +209,7 @@ CRIT
             <div class="panel-heading">
                 <h3 class="panel-title">S3 users</h3><script>var draw = new Array();</script>
             </div>
-            {% for group, list_users in users %}
+            {% for group, list_users in users.items|dictsort:"0.lower" %}
             <div class="panel panel-default">
                 <div class="panel-heading" role="tab" id="heading-{{group}}">
                     <a class="panel-title collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-{{group}}" aria-expanded="false" aria-controls="collapse-{{group}}">

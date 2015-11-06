@@ -205,9 +205,13 @@ def get_users_stat(s3_server):
 
             except:
                 pass
-        return users_stat
+        for i in users_stat:
+            for j in users_stat[i]:
+                users_stat[i][j].default_factory = None
+            users_stat[i].default_factory = None
+        return dict(users_stat)
     except:
-        return users_stat
+        return dict(users_stat)
 
 
 def osd_details(request, osd_num):
