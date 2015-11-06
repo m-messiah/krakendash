@@ -7,19 +7,25 @@ Service zone
 {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% else %}
 <div class="container">
     <div class="starter-template">
-        <div class="row">
+        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            {% for group, list_users in users %}
             <div class="panel panel-default">
-                <div class="panel-heading">
+                <div class="panel-heading" role="tab" id="heading-{{group}}">
                     <button id="toggle-adduser" class="btn btn-toggle text-muted" data-toggle="modal" data-target="#adduser"><i class="glyphicon glyphicon-plus"></i></button>
                     {% include "new_user.html" %}
-                    <h3 class="panel-title">Users list</h3>
+                    <h3 class="panel-title">
+                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-{{group}}" aria-expanded="false" aria-controls="collapse-{{group}}">{{ group }}</a>
+                    </h3>
                 </div>
-                <div class="panel-body" id="userList">
-                    {% for username, stats in users.items|dictsort:"0.lower" %}
-                        {% include "user.html" %}
-                    {% endfor %}
+                <div id="collapse-{{group}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-{{group}}">
+                    <div class="panel-body" id="userList">
+                        {% for username, stats in list_users.items|dictsort:"0.lower" %}
+                            {% include "user.html" %}
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </div>

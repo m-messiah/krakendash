@@ -29,7 +29,7 @@
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+from collections import defaultdict
 
 from django.http import JsonResponse
 from django.conf import settings
@@ -49,10 +49,10 @@ def param(request, key):
     return request.GET[key]
 
 
-def get_user_info(username, public=False):
-    userinfo = rgwAdmin.get_user(username)
-    userinfo.update({"user_quota": rgwAdmin.get_quota(username, "user"),
-                     "bucket_quota": rgwAdmin.get_quota(username, "bucket")})
+def get_user_info(username, public=True):
+    userinfo = dict(rgwAdmin.get_user(username))
+    userinfo["user_quota"] = rgwAdmin.get_quota(username, "user")
+    userinfo["bucket_quota"] = rgwAdmin.get_quota(username, "bucket")
     if public:
         map(lambda d: d.pop("secret_key"), userinfo["keys"])
         map(lambda d: d.pop("secret_key"), userinfo["swift_keys"])
@@ -60,9 +60,16 @@ def get_user_info(username, public=False):
 
 
 def ops(request):
+    users = defaultdict(dict)
     try:
-        users = {username: get_user_info(username, public=True)
-                 for username in rgwAdmin.get_users()}
+        raw_users = map(get_user_info, rgwAdmin.get_users())
+        for user in raw_users:
+            users[
+                user['display_name'].split(":")[0].upper()
+                if ':' in user["display_name"]
+                else "_none"
+            ][user['user_id']] = user
+
     except TypeError:
         try:
             global rgwAdmin
@@ -71,12 +78,12 @@ def ops(request):
                                 s3_servers.pop(0), secure=False)
             return ops(request)
         except IndexError:
-            return render(request, 'ops.html', {'users': users,
+            return render(request, 'ops.html', {'users': sorted(users.items()),
                                                 'error': "No available RGW"})
     if 'json' in request.GET:
         return JsonResponse({"users": users})
     else:
-        return render(request, 'ops.html', {"users": users})
+        return render(request, 'ops.html', {"users": sorted(users.items())})
 
 
 def user_custom(request, user, func, argument):
@@ -125,7 +132,7 @@ def user_custom(request, user, func, argument):
                     req_user, subuser=sub_user,
                     key_type='swift', access='full',
                     generate_secret=True)
-                user_info = get_user_info(req_user)
+                user_info = get_user_info(req_user, public=False)
                 for key in user_info["swift_keys"]:
                     if key["user"] == sub_user:
                             return JsonResponse(key)

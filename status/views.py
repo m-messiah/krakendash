@@ -122,9 +122,12 @@ def home(request):
     dresp, osd_dump = ceph.osd_dump(body='json')
     osd_stat = {}
     for osd in osd_dump['output']['osds']:
-        hostname = gethostbyaddr(
-            osd["public_addr"].split(":")[0]
-        )[0].split(".")[0]
+        try:
+            hostname = gethostbyaddr(
+                osd["public_addr"].split(":")[0]
+            )[0].split(".")[0]
+        except:
+            continue
         if hostname in osd_stat:
             osd_stat[hostname].append(osd)
         else:
