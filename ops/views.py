@@ -67,7 +67,7 @@ def ops(request):
             users[
                 user['display_name'].split(":")[0].upper()
                 if ':' in user["display_name"]
-                else "_none"
+                else "-"
             ][user['user_id']] = user
 
     except TypeError:
