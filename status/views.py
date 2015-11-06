@@ -220,7 +220,7 @@ def osd_details(request, osd_num):
 
     reponse, osd_dump = ceph.osd_dump(body='json')
     osd_disk_details = filter(
-        lambda x: x['osd'] == int(osd_num), osd_dump['output']['osds']
+        lambda x: x['osd'] == int(osd_num), dict(osd_dump['output']['osds'])
     )[0]
     osd_disk_details["name"] = gethostbyaddr(
         osd_disk_details["public_addr"].split(":")[0]
