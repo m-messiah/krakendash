@@ -11,15 +11,15 @@ Service zone
 {% include "new_user.html" %}
 <div class="container">
     <div class="starter-template">
-        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <div class="panel-group" aria-multiselectable="true">
             {% for group, list_users in users %}
             <div class="panel panel-default">
-                <div class="panel-heading" role="tab" id="heading-{{group}}">
-                    <a class="panel-title collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-{{group}}" aria-expanded="false" aria-controls="collapse-{{group}}">
+                <div class="panel-heading" id="heading-{{group}}">
+                    <a class="panel-title collapsed" role="button" data-toggle="collapse" href="#collapse-{{group}}" aria-expanded="false" aria-controls="collapse-{{group}}">
                         <h3 class="panel-title">{{group}} ({{list_users|length}})</h3>
                     </a>
                 </div>
-                <div id="collapse-{{group}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-{{group}}">
+                <div id="collapse-{{group}}" class="panel-collapse collapse" aria-labelledby="heading-{{group}}">
                     <div class="panel-body" id="userList">
                         {% for username, stats in list_users.items|dictsort:"0.lower" %}
                             {% include "user.html" %}
