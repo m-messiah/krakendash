@@ -182,7 +182,7 @@ def get_rgw_stat(server):
 
 
 def get_users_stat(s3_server):
-    users_stat = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    users_stat = defaultdict(lambda: [0, defaultdict(lambda: defaultdict(dict))])
     try:
         rgwAdmin = RGWAdmin(settings.S3_CRED['access_key'],
                             settings.S3_CRED['secret_key'],
@@ -194,21 +194,25 @@ def get_users_stat(s3_server):
                 username = rgwAdmin.get_user(
                     bucket_stat["owner"]
                 )["display_name"]
-
-                users_stat[
-                    username.split(":")[0].upper()
-                    if ':' in username
-                    else "-"
-                ][
-                    bucket_stat["owner"]
-                ][bucket] = bucket_stat["usage"]["rgw.main"]
+                
+                if ':' in username:
+                    group_name = username.split(":")[0].upper()
+                else:
+                    group_name = "_"
+                users_stat[group_name][1][bucket_stat["owner"]][bucket] = (
+                    bucket_stat["usage"]["rgw.main"]
+                )
+                users_stat[group_name][0] += bucket_stat[
+                    "usage"
+                ]["rgw.main"]["size_kb"]
 
             except:
                 pass
         for i in users_stat:
-            for j in users_stat[i]:
-                users_stat[i][j].default_factory = None
-            users_stat[i].default_factory = None
+            users_stat[i][0] *= 1024
+            for j in users_stat[i][1]:
+                users_stat[i][1][j].default_factory = None
+            users_stat[i][1].default_factory = None
         return dict(users_stat)
     except:
         return dict(users_stat)

@@ -213,12 +213,12 @@ CRIT
             <div class="panel-default">
                 <div class="panel-heading" id="heading-{{group}}">
                     <a class="panel-title collapsed" role="button" data-toggle="collapse" href="#collapse-{{group}}" aria-expanded="false" aria-controls="collapse-{{group}}">
-                        <h3 class="panel-title">{{group}} ({{list_users|length}})</h3>
+                        <h3 class="panel-title">{{group}} ({{list_users.0|filesizeformat}})</h3>
                     </a>
                 </div>
                 <div id="collapse-{{group}}" class="panel-collapse collapse" aria-labelledby="heading-{{group}}">
                     <div class="panel-body" id="userList">
-                        {% for user, data in list_users.items|dictsort:"0.lower" %}
+                        {% for user, data in list_users.1.items|dictsort:"0.lower" %}
                          <div class="col-sm-4 col-lg-3">
                             <div>{{ user }}</div>
                             <div id="gauge-{{ user }}" data-container="body" data-toggle="popover" data-placement="top" data-content=""></div>
