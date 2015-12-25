@@ -79,9 +79,9 @@ def home(request):
     def filesize(value):
         value = float(value)
         if value == 1:
-            return '1 Byte'
+            return 0, 1, 'Byte'
         elif value < 1024 ** 2:
-            return '%d Bytes' % value
+            return 0, str(value), 'Bytes'
         for i, s in enumerate(suffixes['decimal']):
             unit = 1024 ** (i + 2)
             if value < unit * 1024:
@@ -161,6 +161,14 @@ def home(request):
         if s3server_stat:
             response['users'] = get_users_stat(s3server)
             break
+
+    _, df = ceph.df(body="json")
+    response['cephfs'] = round(
+        float(filter(
+            lambda pool: pool['name'] == 'data',
+            df['output']['pools']
+        )[0]['stats']['bytes_used']) /
+        (1024.0 ** (response['scale'] + 1)), 1)
  
     if 'json' in request.GET:
         return JsonResponse(response)

@@ -34,3 +34,5 @@ body {padding-top:70px;text-align:center;}
 .nofocus {pointer-events: none; cursor: not-allowed;}
 
 .btn-group, .btn-group-vertical {vertical-align: top;}
+
+.cephfs { color:#f9a03f; }

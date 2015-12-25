@@ -99,7 +99,7 @@ CRIT
                             center = size / 2,
                             param = {stroke: "#fff", "stroke-width": strength},
                             r = Raphael("gauge-usage", size, size / 2 + strength);
-                            r.customAttributes.arc = function (value, total, R, bg) {
+                            r.customAttributes.arc = function (value, total, R, bg, fs) {
                                     var alpha = 180 / total * value,
                                         a = (180 - alpha) * Math.PI / 180,
                                         x = center + R * Math.cos(a),
@@ -113,6 +113,7 @@ CRIT
                                         color = "#edd268";
                                     }
                                     if (bg) { color = "#f2f2f2";}
+                                    if (fs) { color = "#f9a03f";}
                                     if (total == value) {
                                         path = [["M", center - R, center], ["A", R, R, 0, 0, 1, center + R, center ]];
                                     } else {
@@ -123,9 +124,13 @@ CRIT
                             var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
                             var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
                             scale.animate({arc: [{{ data_used }}, {{ data_avail }}, R]}, 900, '>');
+                            var scale_fs = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R, null, 1]});
+                            scale_fs.animate({arc: [{{ cephfs }}, {{ data_avail }}, R, null, 1]}, 900, '>');
+
                             var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
                             var hoverOut = function() {this.attr({"stroke-width": strength});};
                             scale.hover(hoverIn, hoverOut, scale, scale);
+                            scale_fs.hover(hoverIn, hoverOut, scale_fs, scale_fs);
                             r.text(center - R, center + 10, "0").attr({fill: "#ccc" });
                             r.text(center + R, center + 10, "{{ data_avail|floatformat }}").attr({fill: "#ccc" });
                             r.text(center, center - strength / 3.4, "{{ data_used|floatformat }}").attr({"font-weight": 600, "font-size": strength / 1.2});
@@ -133,6 +138,7 @@ CRIT
                         };
                         draw_usage();
                     </script>
+                    <p>Ceph FS usage: <span class="cephfs">{{cephfs|floatformat}} {{data_scale}}</span></p>
                 </div>
             </div>
         </div>
