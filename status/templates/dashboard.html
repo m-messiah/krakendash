@@ -105,9 +105,9 @@ CRIT
                                         x = center + R * Math.cos(a),
                                         y = center - R * Math.sin(a),
                                         path;
-                                    if (value < (total / 3)) {
+                                    if (value < (total / 2)) {
                                         color = "#b6de71";
-                                    } else if (value > (2 * total / 3)) {
+                                    } else if (value > (3 * total / 4)) {
                                         color = "#cc5454";
                                     } else {
                                         color = "#edd268";
@@ -259,9 +259,9 @@ CRIT
                                         };
                                     {% for bucket, stat in data.items %}
                                     {% if stat %}
-                                        var bg = r.path().attr(param).attr({arc: [1024, 1024, R, 1]});
-                                        var scale = r.path().attr(param).attr({arc: [1, 1024, R]});
-                                        scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }})), 1024, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
+                                        var bg = r.path().attr(param).attr({arc: [3072, 3072, R, 1]});
+                                        var scale = r.path().attr(param).attr({arc: [1, 3072, R]});
+                                        scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }})), 3072, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
                                         var hoverIn = function() {this.attr({"stroke-width": strength + 3}); $('#gauge-{{user}}').popover({content: "{{ bucket }}: {{stat.size_kb|mul:1024|filesizeformat}} ({{stat.size_kb_actual|mul:1024|filesizeformat}})"}); $('#gauge-{{user}}').popover('show')};
 
                                         var hoverOut = function() {this.attr({"stroke-width": strength});$('#gauge-{{user}}').popover('destroy')}
